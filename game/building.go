@@ -26,7 +26,7 @@ func (b *Building) String() string {
 	if b.IsUnlocked() {
 		return fmt.Sprintf("%s (Next Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)", b.Name, b.Cost(), b.Count, b.GenerateRate)
 	}
-	return fmt.Sprintf("%s (Locked, Cost: $%.2f)", b.Name, b.Cost())
+	return fmt.Sprintf("%s (Locked, Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)", b.Name, b.Cost(), b.Count, b.GenerateRate)
 }
 
 func (b *Building) GenerateIncome(elapsed float64) float64 {
