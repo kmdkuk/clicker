@@ -4,10 +4,10 @@ $(LOCALBIN):
 
 .PHONY: build-wasm
 build-wasm:
-	GOOS=js GOARCH=wasm go build -o pages/main.wasm main.go
+	GOOS=js GOARCH=wasm go build -o pages/main.wasm cmd/clicker/main.go
 
 build: ## Build the Go application.
-	go build -o bin/clicker main.go
+	go build -o bin/clicker cmd/clicker/main.go
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -18,9 +18,9 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: test
-test: fmt vet staticcheck lint## Run tests.
+test: fmt vet staticcheck ginkgo lint## Run tests.
 	$(STATICCHECK) ./...
-	go test ./... -v -coverprofile=coverage.out
+	$(GINKGO) -p -v -r --trace --cover --coverprofile=coverage.out
 	go tool cover -html=coverage.out -o coverage.html
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
@@ -44,3 +44,9 @@ STATICCHECK ?= $(LOCALBIN)/staticcheck
 staticcheck: $(STATICCHECK)
 $(STATICCHECK): $(LOCALBIN)
 	test -s $(LOCALBIN)/staticcheck || GOBIN=$(LOCALBIN) go install honnef.co/go/tools/cmd/staticcheck@latest
+
+GINKGO ?= $(LOCALBIN)/ginkgo
+.PHONY: ginkgo
+ginkgo: $(GINKGO)
+$(GINKGO): $(LOCALBIN)
+	test -s $(GINKGO) || GOBIN=$(LOCALBIN) go install github.com/onsi/ginkgo/v2/ginkgo@latest

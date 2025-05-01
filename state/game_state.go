@@ -1,7 +1,10 @@
-package game
+package state
 
 import (
 	"time"
+
+	"github.com/kmdkuk/clicker/level"
+	"github.com/kmdkuk/clicker/model"
 )
 
 type GameState interface {
@@ -11,48 +14,48 @@ type GameState interface {
 	PurchaseUpgradeAction(upgradeIndex int) (bool, string)   // アップグレードを購入します
 	GetTotalGenerateRate() float64                           // 総生成レートを取得します
 	UpdateBuildings(now time.Time)
-	GetBuildings() []Building
-	GetUpgrades() []Upgrade
-	SetUpgrades(upgrades []Upgrade)
+	GetBuildings() []model.Building
+	GetUpgrades() []model.Upgrade
+	SetUpgrades(upgrades []model.Upgrade)
 	GetMoney() float64
-	GetManualWork() *ManualWork
+	GetManualWork() *model.ManualWork
 }
 
 // GameState はゲームの状態を管理します
 type DefaultGameState struct {
 	money      float64
-	manualWork ManualWork
-	buildings  []Building
-	upgrades   []Upgrade
+	manualWork model.ManualWork
+	buildings  []model.Building
+	upgrades   []model.Upgrade
 	lastUpdate time.Time
 }
 
 func NewGameState() GameState {
 	return &DefaultGameState{
 		money:      0,
-		manualWork: ManualWork{name: "Manual Work: $0.1", value: 0.1, count: 0},
-		buildings:  newBuildings(),
-		upgrades:   newUpgrades(),
+		manualWork: model.ManualWork{Name: "Manual Work: $0.1", Value: 0.1, Count: 0},
+		buildings:  level.NewBuildings(),
+		upgrades:   level.NewUpgrades(),
 		lastUpdate: time.Now(),
 	}
 }
 
-func (g *DefaultGameState) GetBuildings() []Building {
+func (g *DefaultGameState) GetBuildings() []model.Building {
 	return g.buildings
 }
-func (g *DefaultGameState) GetUpgrades() []Upgrade {
+func (g *DefaultGameState) GetUpgrades() []model.Upgrade {
 	return g.upgrades
 }
-func (g *DefaultGameState) SetUpgrades(upgrades []Upgrade) {
+func (g *DefaultGameState) SetUpgrades(upgrades []model.Upgrade) {
 	g.upgrades = upgrades
 }
 func (g *DefaultGameState) GetMoney() float64 {
 	return g.money
 }
-func (g *DefaultGameState) GetManualWork() *ManualWork {
+func (g *DefaultGameState) GetManualWork() *model.ManualWork {
 	return &g.manualWork
 }
-func (g *DefaultGameState) SetManualWork(manualWork ManualWork) {
+func (g *DefaultGameState) SetManualWork(manualWork model.ManualWork) {
 	g.manualWork = manualWork
 }
 
@@ -80,7 +83,7 @@ func (g *DefaultGameState) PurchaseBuildingAction(buildingIndex int) (bool, stri
 	}
 
 	g.UpdateMoney(-cost)
-	building.count++
+	building.Count++
 	return true, "Building purchased successfully!"
 }
 
@@ -92,20 +95,20 @@ func (g *DefaultGameState) PurchaseUpgradeAction(upgradeIndex int) (bool, string
 
 	upgrade := &g.upgrades[upgradeIndex]
 
-	if upgrade.isPurchased {
+	if upgrade.IsPurchased {
 		return false, "Upgrade already purchased!"
 	}
 
-	if !upgrade.isReleased(g) {
+	if !upgrade.IsReleased(g) {
 		return false, "Upgrade not available yet!"
 	}
 
-	if g.money < upgrade.cost {
+	if g.money < upgrade.Cost {
 		return false, "Not enough money for upgrade!"
 	}
 
-	g.UpdateMoney(-upgrade.cost)
-	upgrade.isPurchased = true
+	g.UpdateMoney(-upgrade.Cost)
+	upgrade.IsPurchased = true
 	return true, "Upgrade purchased successfully!"
 }
 
@@ -113,7 +116,7 @@ func (g *DefaultGameState) GetTotalGenerateRate() float64 {
 	totalRate := 0.0
 	for _, building := range g.buildings {
 		if building.IsUnlocked() {
-			totalRate += building.totalGenerateRate(g.upgrades)
+			totalRate += building.TotalGenerateRate(g.upgrades)
 		}
 	}
 	return totalRate

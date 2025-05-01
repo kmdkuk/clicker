@@ -1,17 +1,18 @@
-package game
+package input
 
 import (
 	"time"
 
+	"github.com/kmdkuk/clicker/model"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 type MockGameState struct {
 	money                        float64
-	manualWork                   ManualWork
-	buildings                    []Building
-	upgrades                     []Upgrade
+	manualWork                   model.ManualWork
+	buildings                    []model.Building
+	upgrades                     []model.Upgrade
 	manualWorkCalled             bool
 	updateBuildingsCalled        bool
 	getTotalGenerateRateCalled   bool
@@ -26,19 +27,19 @@ func (m *MockGameState) UpdateMoney(amount float64) {
 func (m *MockGameState) GetMoney() float64 {
 	return m.money
 }
-func (m *MockGameState) GetManualWork() *ManualWork {
+func (m *MockGameState) GetManualWork() *model.ManualWork {
 	return &m.manualWork
 }
-func (m *MockGameState) SetManualWork(manualWork ManualWork) {
+func (m *MockGameState) SetManualWork(manualWork model.ManualWork) {
 	m.manualWork = manualWork
 }
-func (m *MockGameState) GetBuildings() []Building {
+func (m *MockGameState) GetBuildings() []model.Building {
 	return m.buildings
 }
-func (m *MockGameState) GetUpgrades() []Upgrade {
+func (m *MockGameState) GetUpgrades() []model.Upgrade {
 	return m.upgrades
 }
-func (m *MockGameState) SetUpgrades(upgrades []Upgrade) {
+func (m *MockGameState) SetUpgrades(upgrades []model.Upgrade) {
 	m.upgrades = upgrades
 }
 func (m *MockGameState) ManualWork() {
@@ -72,12 +73,12 @@ var _ = Describe("Decider", func() {
 	BeforeEach(func() {
 		gameState = &MockGameState{
 			money: 0,
-			buildings: []Building{
-				{name: "Building 1", baseGenerateRate: 1.0},
-				{name: "Building 2", baseGenerateRate: 2.0},
+			buildings: []model.Building{
+				{Name: "Building 1", BaseGenerateRate: 1.0},
+				{Name: "Building 2", BaseGenerateRate: 2.0},
 			},
-			upgrades: []Upgrade{
-				{name: "Upgrade 1", isReleased: func(g GameState) bool { return true }, isTargetManualWork: true, effect: func(value float64) float64 { return value * 2 }},
+			upgrades: []model.Upgrade{
+				{Name: "Upgrade 1", IsReleased: func(g model.GameStateReader) bool { return true }, IsTargetManualWork: true, Effect: func(value float64) float64 { return value * 2 }},
 			},
 			manualWorkCalled:             false,
 			updateBuildingsCalled:        false,
@@ -98,7 +99,7 @@ var _ = Describe("Decider", func() {
 			Expect(gameState.getTotalGenerateRateCalled).To(BeFalse())
 			Expect(gameState.purchaseBuildingActionCalled).To(BeFalse())
 			Expect(gameState.purchaseUpgradeActionCalled).To(BeFalse())
-			Expect(gameState.GetManualWork().count).To(Equal(1))
+			Expect(gameState.GetManualWork().Count).To(Equal(1))
 		})
 
 		It("should call PurchaseBuildingAction when page is 0 and cursor is not 0", func() {

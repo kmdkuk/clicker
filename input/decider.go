@@ -1,14 +1,14 @@
-package game
+package input
 
 type Decider interface {
 	Decide(page, cursor int) (bool, string)
 }
 
 type DefaultDecider struct {
-	gameState GameState
+	gameState GameStateWriter
 }
 
-func NewDefaultDecider(gameState GameState) Decider {
+func NewDefaultDecider(gameState GameStateWriter) Decider {
 	return &DefaultDecider{
 		gameState: gameState,
 	}

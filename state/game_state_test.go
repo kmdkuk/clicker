@@ -1,7 +1,10 @@
-package game
+package state
 
 import (
 	"time"
+
+	"github.com/kmdkuk/clicker/level"
+	"github.com/kmdkuk/clicker/model"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -13,9 +16,9 @@ var _ = Describe("DefaultGameState", func() {
 	BeforeEach(func() {
 		gameState = DefaultGameState{
 			money:      0,
-			manualWork: ManualWork{name: "Manual Work: $0.1", value: 0.1, count: 0},
-			buildings:  newBuildings(),
-			upgrades:   newUpgrades(),
+			manualWork: model.ManualWork{Name: "Manual Work: $0.1", Value: 0.1, Count: 0},
+			buildings:  level.NewBuildings(),
+			upgrades:   level.NewUpgrades(),
 			lastUpdate: time.Now(),
 		} // Update to use gameState
 	})
@@ -36,11 +39,11 @@ var _ = Describe("DefaultGameState", func() {
 	Describe("updateBuildings", func() {
 		It("should generate income from unlocked buildings", func() {
 			now := time.Now()
-			gameState.buildings[0].count = 1                 // Unlock the first building
+			gameState.buildings[0].Count = 1                 // Unlock the first building
 			gameState.lastUpdate = now.Add(-1 * time.Second) // Simulate 1 second elapsed
 
 			gameState.UpdateBuildings(now)
-			Expect(gameState.GetMoney()).To(Equal(gameState.buildings[0].baseGenerateRate))
+			Expect(gameState.GetMoney()).To(Equal(gameState.buildings[0].BaseGenerateRate))
 		})
 
 		It("should not generate income from locked buildings", func() {
@@ -54,10 +57,10 @@ var _ = Describe("DefaultGameState", func() {
 
 	Describe("GetTotalGenerateRate", func() {
 		It("should calculate the total generate rate from all unlocked buildings", func() {
-			gameState.buildings[0].count = 1
-			gameState.buildings[1].count = 2
+			gameState.buildings[0].Count = 1
+			gameState.buildings[1].Count = 2
 
-			expectedRate := gameState.buildings[0].baseGenerateRate*1 + gameState.buildings[1].baseGenerateRate*2
+			expectedRate := gameState.buildings[0].BaseGenerateRate*1 + gameState.buildings[1].BaseGenerateRate*2
 			Expect(gameState.GetTotalGenerateRate()).To(BeNumerically("~", expectedRate, 0.00001))
 		})
 
@@ -72,7 +75,7 @@ var _ = Describe("DefaultGameState", func() {
 			success, message := gameState.PurchaseBuildingAction(0)
 			Expect(success).To(BeTrue())
 			Expect(message).To(Equal("Building purchased successfully!"))
-			Expect(gameState.buildings[0].count).To(Equal(1))
+			Expect(gameState.buildings[0].Count).To(Equal(1))
 		})
 
 		It("should fail to purchase a building if not enough money", func() {
@@ -90,18 +93,18 @@ var _ = Describe("DefaultGameState", func() {
 
 	Describe("PurchaseUpgradeAction", func() {
 		It("should successfully purchase an upgrade", func() {
-			gameState.upgrades[0].isReleased = func(g GameState) bool {
+			gameState.upgrades[0].IsReleased = func(g model.GameStateReader) bool {
 				return true
 			}
 			gameState.UpdateMoney(10.0) // Add enough money to purchase
 			success, message := gameState.PurchaseUpgradeAction(0)
 			Expect(success).To(BeTrue())
 			Expect(message).To(Equal("Upgrade purchased successfully!"))
-			Expect(gameState.upgrades[0].isPurchased).To(BeTrue())
+			Expect(gameState.upgrades[0].IsPurchased).To(BeTrue())
 		})
 
 		It("should fail to purchase an upgrade if not enough money", func() {
-			gameState.upgrades[0].isReleased = func(g GameState) bool {
+			gameState.upgrades[0].IsReleased = func(g model.GameStateReader) bool {
 				return true
 			}
 			success, message := gameState.PurchaseUpgradeAction(0)

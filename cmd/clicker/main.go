@@ -3,13 +3,15 @@ package main
 import (
 	"log"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/kmdkuk/clicker/config"
 	"github.com/kmdkuk/clicker/game"
+
+	"github.com/hajimehoshi/ebiten/v2"
 	flag "github.com/spf13/pflag"
 )
 
 func main() {
-	cfg := game.NewConfig()
+	cfg := config.NewConfig()
 	flag.BoolVarP(&cfg.EnableDebug, "debug", "d", false, "Enable debug mode")
 	flag.Parse()
 	g := game.NewGame(cfg)

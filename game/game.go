@@ -5,29 +5,34 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/kmdkuk/clicker/config"
+	"github.com/kmdkuk/clicker/input"
+	"github.com/kmdkuk/clicker/state"
+	"github.com/kmdkuk/clicker/ui"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type Game struct {
-	config       *Config      // Game configuration
-	cursor       int          // Cursor position
-	page         int          // Page position
-	gameState    GameState    // Game state
-	decider      Decider      // Decision maker
-	inputHandler InputHandler // Handler to manage input processing
-	popup        Popup        // Popup message
-	debugMessage string       // Debug message
+	config       *config.Config     // Game configuration
+	cursor       int                // Cursor position
+	page         int                // Page position
+	gameState    state.GameState    // Game state
+	decider      input.Decider      // Decision maker
+	inputHandler input.InputHandler // Handler to manage input processing
+	popup        ui.Popup           // Popup message
+	debugMessage string             // Debug message
 }
 
-func NewGame(config *Config) *Game {
-	gameState := NewGameState() // Initialize game state
+func NewGame(config *config.Config) *Game {
+	gameState := state.NewGameState() // Initialize game state
 	game := &Game{
 		config:    config,
 		cursor:    0, // Initial cursor position
 		page:      0, // Initial page position,
 		gameState: gameState,
-		decider:   NewDefaultDecider(gameState),
+		decider:   input.NewDefaultDecider(gameState),
 	}
 	game.validateCursorPosition()
 	return game
@@ -60,15 +65,15 @@ func (g *Game) handleInput() {
 	}
 
 	switch keyType {
-	case KeyTypeUp:
+	case input.KeyTypeUp:
 		g.cursor = (g.cursor - 1 + totalItems) % totalItems
-	case KeyTypeDown:
+	case input.KeyTypeDown:
 		g.cursor = (g.cursor + 1) % totalItems
-	case KeyTypeLeft:
+	case input.KeyTypeLeft:
 		g.page = (g.page - 1 + totalPages) % totalPages // Toggle between pages
-	case KeyTypeRight:
+	case input.KeyTypeRight:
 		g.page = (g.page + 1) % totalPages
-	case KeyTypeDecision:
+	case input.KeyTypeDecision:
 		g.handleDecision()
 	}
 	g.validateCursorPosition()
@@ -181,7 +186,7 @@ func (g *Game) GetTotalGenerateRate() float64 {
 	totalRate := 0.0
 	for _, building := range g.gameState.GetBuildings() {
 		if building.IsUnlocked() {
-			totalRate += building.totalGenerateRate(g.gameState.GetUpgrades())
+			totalRate += building.TotalGenerateRate(g.gameState.GetUpgrades())
 		}
 	}
 	return totalRate

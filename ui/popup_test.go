@@ -1,6 +1,7 @@
-package game
+package ui
 
 import (
+	"github.com/kmdkuk/clicker/input"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -39,7 +40,7 @@ var _ = Describe("Popup", func() {
 			popup.Active = true
 			popup.Message = "Test Message"
 
-			popup.HandleInput(KeyTypeDecision)
+			popup.HandleInput(input.KeyTypeDecision)
 
 			Expect(popup.Active).To(BeFalse())
 		})
@@ -48,7 +49,7 @@ var _ = Describe("Popup", func() {
 			popup.Active = true
 			popup.Message = "Test Message"
 
-			popup.HandleInput(KeyTypeUp)
+			popup.HandleInput(input.KeyTypeUp)
 
 			Expect(popup.Active).To(BeTrue())
 			Expect(popup.Message).To(Equal("Test Message"))

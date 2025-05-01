@@ -1,20 +1,24 @@
 package game
 
 import (
+	"github.com/kmdkuk/clicker/config"
+	"github.com/kmdkuk/clicker/input"
+	"github.com/kmdkuk/clicker/model"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 // MockInputHandler is a mock implementation of InputHandler
 type MockInputHandler struct {
-	pressedKey KeyType
+	pressedKey input.KeyType
 }
 
 func (m *MockInputHandler) Update() {
 	// No-op for mock
 }
 
-func (m *MockInputHandler) GetPressedKey() KeyType {
+func (m *MockInputHandler) GetPressedKey() input.KeyType {
 	return m.pressedKey
 }
 
@@ -39,7 +43,7 @@ var _ = Describe("Game", func() {
 	var mockInputHandler *MockInputHandler
 
 	BeforeEach(func() {
-		config := &Config{EnableDebug: false}
+		config := &config.Config{EnableDebug: false}
 		mockInputHandler = &MockInputHandler{}
 		game = NewGame(config)
 		game.inputHandler = mockInputHandler // Replace inputHandler with mock
@@ -79,7 +83,7 @@ var _ = Describe("Game", func() {
 			game.handleDecision()
 
 			Expect(game.gameState.GetMoney()).To(BeNumerically("<", 10.0)) // Money should decrease
-			Expect(game.gameState.GetBuildings()[0].count).To(Equal(1))    // Building count should increase
+			Expect(game.gameState.GetBuildings()[0].Count).To(Equal(1))    // Building count should increase
 		})
 
 		It("should show a popup if not enough money is available", func() {
@@ -92,7 +96,7 @@ var _ = Describe("Game", func() {
 
 		It("should show a popup if not enough money is available when unlocked", func() {
 			game.cursor = 1                            // Select the first building
-			game.gameState.GetBuildings()[0].count = 1 // Unlock the building
+			game.gameState.GetBuildings()[0].Count = 1 // Unlock the building
 
 			game.handleDecision()
 
@@ -102,12 +106,12 @@ var _ = Describe("Game", func() {
 
 		It("should correctly apply upgrades when performing manual work", func() {
 			// Setup: Enable an upgrade that doubles manual work value
-			game.gameState.SetUpgrades([]Upgrade{
+			game.gameState.SetUpgrades([]model.Upgrade{
 				{
-					name:               "Double Manual Work",
-					isTargetManualWork: true,
-					isPurchased:        true,
-					effect: func(value float64) float64 {
+					Name:               "Double Manual Work",
+					IsTargetManualWork: true,
+					IsPurchased:        true,
+					Effect: func(value float64) float64 {
 						return value * 2
 					},
 				},
@@ -126,30 +130,30 @@ var _ = Describe("Game", func() {
 	Describe("handleDecision with page=1 and cursor > 0", func() {
 		BeforeEach(func() {
 			game.page = 1 // Set to the second page
-			game.gameState.SetUpgrades([]Upgrade{
+			game.gameState.SetUpgrades([]model.Upgrade{
 				{
-					name:               "Test Upgrade 1",
-					isPurchased:        false,
-					isTargetManualWork: false,
-					targetBuilding:     1,
-					cost:               10.0,
-					effect: func(value float64) float64 {
+					Name:               "Test Upgrade 1",
+					IsPurchased:        false,
+					IsTargetManualWork: false,
+					TargetBuilding:     1,
+					Cost:               10.0,
+					Effect: func(value float64) float64 {
 						return value * 2
 					},
-					isReleased: func(g GameState) bool {
+					IsReleased: func(g model.GameStateReader) bool {
 						return true
 					},
 				},
 				{
-					name:               "Test Upgrade 2",
-					isPurchased:        false,
-					isTargetManualWork: false,
-					targetBuilding:     1,
-					cost:               20.0,
-					effect: func(value float64) float64 {
+					Name:               "Test Upgrade 2",
+					IsPurchased:        false,
+					IsTargetManualWork: false,
+					TargetBuilding:     1,
+					Cost:               20.0,
+					Effect: func(value float64) float64 {
 						return value + 5
 					},
-					isReleased: func(g GameState) bool {
+					IsReleased: func(g model.GameStateReader) bool {
 						return true
 					},
 				},
@@ -163,7 +167,7 @@ var _ = Describe("Game", func() {
 			game.handleDecision()
 
 			Expect(game.gameState.GetMoney()).To(BeNumerically("<", 10.0))          // Money should decrease
-			Expect(game.gameState.GetUpgrades()[0].isPurchased).To(BeTrue())        // Upgrade should be marked as purchased
+			Expect(game.gameState.GetUpgrades()[0].IsPurchased).To(BeTrue())        // Upgrade should be marked as purchased
 			Expect(game.popup.Active).To(BeTrue())                                  // Popup should be active
 			Expect(game.popup.Message).To(Equal("Upgrade purchased successfully!")) // Correct popup message
 		})
@@ -174,7 +178,7 @@ var _ = Describe("Game", func() {
 
 			game.handleDecision()
 
-			Expect(game.gameState.GetUpgrades()[0].isPurchased).To(BeFalse())     // Upgrade should not be purchased
+			Expect(game.gameState.GetUpgrades()[0].IsPurchased).To(BeFalse())     // Upgrade should not be purchased
 			Expect(game.popup.Active).To(BeTrue())                                // Popup should be active
 			Expect(game.popup.Message).To(Equal("Not enough money for upgrade!")) // Correct popup message
 		})
@@ -182,7 +186,7 @@ var _ = Describe("Game", func() {
 		It("should not allow purchasing an already purchased upgrade", func() {
 			game.cursor = 1                                    // Select the first upgrade
 			game.gameState.UpdateMoney(10.0)                   // Add enough money to purchase the upgrade
-			game.gameState.GetUpgrades()[0].isPurchased = true // Mark the upgrade as already purchased
+			game.gameState.GetUpgrades()[0].IsPurchased = true // Mark the upgrade as already purchased
 
 			game.handleDecision()
 
@@ -194,17 +198,17 @@ var _ = Describe("Game", func() {
 		It("should show a popup if the upgrade is not yet available", func() {
 			game.page = 1   // Set to the second page
 			game.cursor = 1 // Select the first upgrade
-			game.gameState.SetUpgrades([]Upgrade{
+			game.gameState.SetUpgrades([]model.Upgrade{
 				{
-					name:               "Test Upgrade 1",
-					isTargetManualWork: false,
-					isPurchased:        false,
-					targetBuilding:     1,
-					cost:               10.0,
-					effect: func(value float64) float64 {
+					Name:               "Test Upgrade 1",
+					IsTargetManualWork: false,
+					IsPurchased:        false,
+					TargetBuilding:     1,
+					Cost:               10.0,
+					Effect: func(value float64) float64 {
 						return value * 2
 					},
-					isReleased: func(g GameState) bool {
+					IsReleased: func(g model.GameStateReader) bool {
 						return false // Upgrade is not yet available
 					},
 				},
@@ -214,7 +218,7 @@ var _ = Describe("Game", func() {
 			game.handleDecision()
 
 			// Assert that the upgrade was not purchased
-			Expect(game.gameState.GetUpgrades()[0].isPurchased).To(BeFalse())
+			Expect(game.gameState.GetUpgrades()[0].IsPurchased).To(BeFalse())
 
 			// Assert that the popup is active with the correct message
 			Expect(game.popup.Active).To(BeTrue())
@@ -225,7 +229,7 @@ var _ = Describe("Game", func() {
 	Describe("handleInput", func() {
 		It("should move the cursor up when KeyTypeUp is pressed", func() {
 			game.cursor = 1 // Start at the second item
-			mockInputHandler.pressedKey = KeyTypeUp
+			mockInputHandler.pressedKey = input.KeyTypeUp
 
 			game.handleInput()
 			Expect(game.cursor).To(Equal(0)) // Cursor should move to the first item
@@ -233,7 +237,7 @@ var _ = Describe("Game", func() {
 
 		It("should move the cursor down when KeyTypeDown is pressed", func() {
 			game.cursor = 0 // Start at the first item
-			mockInputHandler.pressedKey = KeyTypeDown
+			mockInputHandler.pressedKey = input.KeyTypeDown
 
 			game.handleInput()
 			Expect(game.cursor).To(Equal(1)) // Cursor should move to the second item
@@ -241,7 +245,7 @@ var _ = Describe("Game", func() {
 
 		It("should wrap the cursor to the bottom when moving up from the top", func() {
 			game.cursor = 0 // Start at the first item
-			mockInputHandler.pressedKey = KeyTypeUp
+			mockInputHandler.pressedKey = input.KeyTypeUp
 
 			game.handleInput()
 			Expect(game.cursor).To(Equal(len(game.gameState.GetBuildings()))) // Cursor should wrap to the last item
@@ -249,14 +253,14 @@ var _ = Describe("Game", func() {
 
 		It("should wrap the cursor to the top when moving down from the bottom", func() {
 			game.cursor = len(game.gameState.GetBuildings()) // Start at the last item
-			mockInputHandler.pressedKey = KeyTypeDown
+			mockInputHandler.pressedKey = input.KeyTypeDown
 
 			game.handleInput()
 			Expect(game.cursor).To(Equal(0)) // Cursor should wrap to the first item
 		})
 
 		It("should trigger handleDecision when KeyTypeDecision is pressed", func() {
-			mockInputHandler.pressedKey = KeyTypeDecision
+			mockInputHandler.pressedKey = input.KeyTypeDecision
 			game.cursor = 0 // Select manual work
 
 			game.handleInput()
@@ -265,7 +269,7 @@ var _ = Describe("Game", func() {
 
 		It("should move to the next page when KeyTypeRight is pressed", func() {
 			game.page = 0 // Start on the first page
-			mockInputHandler.pressedKey = KeyTypeRight
+			mockInputHandler.pressedKey = input.KeyTypeRight
 
 			game.handleInput()
 			Expect(game.page).To(Equal(1)) // Page should move to the second page
@@ -273,7 +277,7 @@ var _ = Describe("Game", func() {
 
 		It("should wrap to the first page when KeyTypeRight is pressed on the last page", func() {
 			game.page = 1 // Start on the last page
-			mockInputHandler.pressedKey = KeyTypeRight
+			mockInputHandler.pressedKey = input.KeyTypeRight
 
 			game.handleInput()
 			Expect(game.page).To(Equal(0)) // Page should wrap to the first page
@@ -281,7 +285,7 @@ var _ = Describe("Game", func() {
 
 		It("should move to the previous page when KeyTypeLeft is pressed", func() {
 			game.page = 1 // Start on the second page
-			mockInputHandler.pressedKey = KeyTypeLeft
+			mockInputHandler.pressedKey = input.KeyTypeLeft
 
 			game.handleInput()
 			Expect(game.page).To(Equal(0)) // Page should move to the first page
@@ -289,7 +293,7 @@ var _ = Describe("Game", func() {
 
 		It("should wrap to the last page when KeyTypeLeft is pressed on the first page", func() {
 			game.page = 0 // Start on the first page
-			mockInputHandler.pressedKey = KeyTypeLeft
+			mockInputHandler.pressedKey = input.KeyTypeLeft
 
 			game.handleInput()
 			Expect(game.page).To(Equal(1)) // Page should wrap to the last page
