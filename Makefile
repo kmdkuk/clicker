@@ -20,7 +20,8 @@ vet: ## Run go vet against code.
 .PHONY: test
 test: fmt vet staticcheck lint## Run tests.
 	$(STATICCHECK) ./...
-	go test ./...
+	go test ./... -v -coverprofile=coverage.out
+	go tool cover -html=coverage.out -o coverage.html
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.1.5

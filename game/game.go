@@ -11,15 +11,15 @@ import (
 )
 
 type Game struct {
-	config       *Config       // Game configuration
-	money        float64       // Player's money
-	cursor       int           // Cursor position
-	manualWork   ManualWork    // Manual work option
-	buildings    []Building    // List of buildings
-	inputHandler *InputHandler // Handler to manage input processing
-	lastUpdate   time.Time     // Last update time
-	popup        Popup         // Popup message
-	debugMessage string        // Debug message
+	config       *Config      // Game configuration
+	money        float64      // Player's money
+	cursor       int          // Cursor position
+	manualWork   ManualWork   // Manual work option
+	buildings    []Building   // List of buildings
+	inputHandler InputHandler // Handler to manage input processing
+	lastUpdate   time.Time    // Last update time
+	popup        Popup        // Popup message
+	debugMessage string       // Debug message
 }
 
 func NewGame(config *Config) *Game {
@@ -33,7 +33,7 @@ func NewGame(config *Config) *Game {
 			{Name: "Building 2", BaseCost: 10.0, GenerateRate: 0.05, Count: 0},
 			{Name: "Building 3", BaseCost: 100.0, GenerateRate: 0.10, Count: 0},
 		},
-		inputHandler: &InputHandler{},
+		inputHandler: &DefaultInputHandler{}, // Use the default implementation
 		lastUpdate:   time.Now(),
 	}
 }

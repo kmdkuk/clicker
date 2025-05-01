@@ -5,6 +5,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// KeyType represents the type of key input
 type KeyType int
 
 const (
@@ -16,12 +17,19 @@ const (
 	KeyTypeNone                    // No input or other keys
 )
 
-type InputHandler struct {
+// InputHandler is an interface for handling input
+type InputHandler interface {
+	Update()
+	GetPressedKey() KeyType
+}
+
+// DefaultInputHandler is the default implementation of InputHandler
+type DefaultInputHandler struct {
 	pressedKey ebiten.Key // Stores the pressed key
 }
 
 // Update method to record the pressed key
-func (ih *InputHandler) Update() {
+func (ih *DefaultInputHandler) Update() {
 	ih.pressedKey = ebiten.Key(0) // Initialize
 
 	// Record the pressed key
@@ -32,7 +40,7 @@ func (ih *InputHandler) Update() {
 }
 
 // GetPressedKey method to classify and retrieve the pressed key
-func (ih *InputHandler) GetPressedKey() KeyType {
+func (ih *DefaultInputHandler) GetPressedKey() KeyType {
 	switch ih.pressedKey {
 	case ebiten.KeyArrowUp, ebiten.KeyW, ebiten.KeyK:
 		return KeyTypeUp // Direction key: Up
