@@ -5,6 +5,10 @@ $(LOCALBIN):
 .PHONY: build-wasm
 build-wasm:
 	GOOS=js GOARCH=wasm go build -o pages/main.wasm main.go
+
+build: ## Build the Go application.
+	go build -o bin/clicker main.go
+
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	go fmt ./...
@@ -14,7 +18,7 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: test
-test: fmt vet staticcheck ## Run tests.
+test: fmt vet staticcheck lint## Run tests.
 	$(STATICCHECK) ./...
 	go test ./...
 

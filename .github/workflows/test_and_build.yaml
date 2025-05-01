@@ -13,15 +13,8 @@ jobs:
     steps:
       - run: echo "${{ github.event.pull_request.title }}"
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     needs: prepare
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macOS-latest
-          - windows-latest
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -30,7 +23,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: build
-        run: make build
+        run: make build-wasm
   test:
     runs-on: ubuntu-latest
     needs: prepare
