@@ -5,12 +5,6 @@ import (
 	"math"
 )
 
-const roundToTwoDecimalPlaces = 1e2 // 小数点以下2桁に丸めるための定数
-
-func round(value float64) float64 {
-	return math.Round(value*roundToTwoDecimalPlaces) / roundToTwoDecimalPlaces
-}
-
 type Building struct {
 	id               int     // Unique identifier
 	name             string  // Display name
@@ -24,7 +18,8 @@ func (b *Building) Cost() float64 {
 	if b.count == 0 {
 		return b.baseCost
 	}
-	return b.baseCost * math.Pow(1.15, float64(b.count))
+	cost := b.baseCost * math.Pow(1.15, float64(b.count))
+	return cost
 }
 
 func (b *Building) IsUnlocked() bool {
@@ -36,28 +31,31 @@ func (b *Building) String(upgrades []Upgrade) string {
 		return fmt.Sprintf(
 			"%s (Next Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)",
 			b.name,
-			round(b.Cost()), // 表示時に丸める
+			b.Cost(),
 			b.count,
-			round(b.totalGenerateRate(upgrades)), // 表示時に丸める
+			b.totalGenerateRate(upgrades),
 		)
 	}
 	return fmt.Sprintf(
 		"%s (Locked, Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)",
 		b.name,
-		round(b.Cost()), // 表示時に丸める
+		b.Cost(),
 		b.count,
 		b.baseGenerateRate,
 	)
 }
 
+// totalGenerateRate メソッドでの丸め処理
 func (b *Building) totalGenerateRate(upgrades []Upgrade) float64 {
-	totalGenerateRate := b.baseGenerateRate
+	// 計算ロジック
+	rate := b.baseGenerateRate * float64(b.count)
+	// 必要なアップグレード処理
 	for _, upgrade := range upgrades {
 		if !upgrade.isTargetManualWork && b.id == upgrade.targetBuilding && upgrade.isPurchased {
-			totalGenerateRate = upgrade.effect(totalGenerateRate)
+			rate = upgrade.effect(rate)
 		}
 	}
-	return totalGenerateRate * float64(b.count) // 丸めを削除
+	return rate
 }
 
 func (b *Building) GenerateIncome(elapsed float64, upgrades []Upgrade) float64 {

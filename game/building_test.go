@@ -36,7 +36,7 @@ var _ = Describe("Building", func() {
 		It("should calculate the correct cost for multiple purchases", func() {
 			building.count = 3
 			expectedCost := 10.0 * 1.15 * 1.15 * 1.15
-			Expect(building.Cost()).To(BeNumerically("~", expectedCost, 0.001))
+			Expect(building.Cost()).To(BeNumerically("~", expectedCost, 0.00001))
 		})
 	})
 
@@ -103,7 +103,7 @@ var _ = Describe("Building", func() {
 					return rate * 1.5
 				}},
 			}
-			Expect(building.totalGenerateRate(upgrades)).To(BeNumerically("~", 0.5*1.5*2, 0.001))
+			Expect(building.totalGenerateRate(upgrades)).To(BeNumerically("~", 0.5*1.5*2, 0.00001))
 		})
 	})
 })

@@ -42,12 +42,6 @@ var _ = Describe("Game", func() {
 			game.UpdateMoney(-5.0)
 			Expect(game.money).To(Equal(5.0))
 		})
-
-		It("should round money to avoid floating-point errors", func() {
-			game.UpdateMoney(0.1)
-			game.UpdateMoney(0.2)
-			Expect(game.money).To(Equal(0.3))
-		})
 	})
 
 	Describe("updateBuildings", func() {
@@ -230,8 +224,8 @@ var _ = Describe("Game", func() {
 			game.buildings[0].count = 1
 			game.buildings[1].count = 2
 
-			expectedRate := round(game.buildings[0].baseGenerateRate*1) + round(game.buildings[1].baseGenerateRate*2)
-			Expect(game.GetTotalGenerateRate()).To(Equal(round(expectedRate)))
+			expectedRate := game.buildings[0].baseGenerateRate*1 + game.buildings[1].baseGenerateRate*2
+			Expect(game.GetTotalGenerateRate()).To(BeNumerically("~", expectedRate, 0.00001))
 		})
 
 		It("should return 0 if no buildings are unlocked", func() {

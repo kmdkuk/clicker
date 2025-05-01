@@ -18,8 +18,8 @@ func (m *ManualWork) Value(upgrades []Upgrade) float64 {
 	value := m.value
 	for _, upgrade := range upgrades {
 		if upgrade.isTargetManualWork && upgrade.isPurchased {
-			value = round(upgrade.effect(value))
+			value = upgrade.effect(value)
 		}
 	}
-	return round(value)
+	return value
 }

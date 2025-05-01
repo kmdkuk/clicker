@@ -24,7 +24,7 @@ type Game struct {
 }
 
 func NewGame(config *Config) *Game {
-	return &Game{
+	game := &Game{
 		config:       config,
 		money:        0, // Initial money
 		cursor:       0, // Initial cursor position
@@ -35,6 +35,8 @@ func NewGame(config *Config) *Game {
 		inputHandler: &DefaultInputHandler{}, // Use the default implementation
 		lastUpdate:   time.Now(),
 	}
+	game.validateCursorPosition()
+	return game
 }
 
 func (g *Game) Update() error {
@@ -67,7 +69,7 @@ func (g *Game) updateBuildings(now time.Time) {
 
 func (g *Game) handleInput() {
 	keyType := g.inputHandler.GetPressedKey()
-	g.debugMessage = fmt.Sprintf("Key Pressed: %v", keyType)
+	g.DebugMessage(fmt.Sprintf("Key Pressed: %v", keyType))
 	totalPages := 2                    // Two pages: manual work + buildings, upgrades
 	totalItems := len(g.buildings) + 1 // manualWork + buildings
 	if g.page == 1 {
@@ -79,20 +81,38 @@ func (g *Game) handleInput() {
 		g.cursor = (g.cursor - 1 + totalItems) % totalItems
 	case KeyTypeDown:
 		g.cursor = (g.cursor + 1) % totalItems
-	case KeyTypeRight:
-		g.cursor = 0
-		g.page = (g.page + 1) % totalPages // Toggle between pages
 	case KeyTypeLeft:
-		g.cursor = 0
 		g.page = (g.page - 1 + totalPages) % totalPages // Toggle between pages
+	case KeyTypeRight:
+		g.page = (g.page + 1) % totalPages
 	case KeyTypeDecision:
 		g.handleDecision()
+	}
+	g.validateCursorPosition()
+}
+
+// validateCursorPosition はカーソル位置が有効範囲内にあることを確保します
+func (g *Game) validateCursorPosition() {
+	totalItems := len(g.buildings) + 1 // Manual Work + Buildings
+	if g.page == 1 {
+		totalItems = len(g.upgrades) + 1 // Manual Work + Upgrades
+	}
+
+	// カーソルが範囲外の場合、安全な値に設定
+	if g.cursor < 0 {
+		g.cursor = 0
+	} else if g.cursor >= totalItems {
+		g.cursor = totalItems - 1
 	}
 }
 
 func (g *Game) handleDecision() {
-	if (g.page == 0 && g.cursor < 0 || g.cursor >= len(g.buildings)+1) ||
-		(g.page == 1 && g.cursor < 0 || g.cursor >= len(g.upgrades)+1) { // 無効なカーソル位置をチェック
+	totalItems := len(g.buildings) + 1
+	if g.page == 1 {
+		totalItems = len(g.upgrades) + 1
+	}
+	if g.cursor < 0 || totalItems <= g.cursor {
+		g.DebugMessage(fmt.Sprintf("Invalid cursor position: %d", g.cursor))
 		return
 	}
 	if g.cursor == 0 {
@@ -103,38 +123,43 @@ func (g *Game) handleDecision() {
 	}
 	switch g.page { // Building processing
 	case 0:
+		if g.cursor < 0 || len(g.buildings) < g.cursor-1 {
+			g.DebugMessage(fmt.Sprintf("Invalid building selection: %d", g.cursor-1))
+			return
+		}
 		building := &g.buildings[g.cursor-1]
 		cost := building.Cost()
 		if g.money >= cost {
 			g.UpdateMoney(-cost)
 			building.count++
-		} else {
-			if building.IsUnlocked() {
-				g.popup.Show("Not enough money to purchase!")
-			} else {
-				g.popup.Show("Not enough money to unlock!")
-			}
-			g.DebugMessage(fmt.Sprintf("Cost: %.2f > Money: %.2f", cost, g.money))
+			return
 		}
+		if building.IsUnlocked() {
+			g.popup.Show("Not enough money to purchase!")
+			return
+		}
+		g.popup.Show("Not enough money to unlock!")
+		return
 	case 1:
 		// Upgrade processing
 		upgrade := &g.upgrades[g.cursor-1]
-		if upgrade.isReleased(g) {
-			cost := upgrade.cost
-			if upgrade.isPurchased {
-				g.popup.Show("Upgrade already purchased!")
-				return
-			}
-			if g.money >= cost {
-				g.UpdateMoney(-cost)
-				upgrade.isPurchased = true
-				g.popup.Show("Upgrade purchased successfully!")
-			} else {
-				g.popup.Show("Not enough money for upgrade!")
-			}
-		} else {
-			g.popup.Show("Upgrade not available yet!")
+		if upgrade.isPurchased {
+			g.popup.Show("Upgrade already purchased!")
+			return
 		}
+		if !upgrade.isReleased(g) {
+			g.popup.Show("Upgrade not available yet!")
+			return
+		}
+		cost := upgrade.cost
+		if g.money < cost {
+			g.popup.Show("Not enough money for upgrade!")
+			return
+		}
+		g.UpdateMoney(-cost)
+		upgrade.isPurchased = true
+		g.popup.Show("Upgrade purchased successfully!")
+		return
 	}
 }
 
@@ -171,9 +196,9 @@ func (g *Game) drawManualWork(screen *ebiten.Image) {
 	y := 50
 	if g.cursor == 0 {
 		ebitenutil.DebugPrintAt(screen, "-> "+g.manualWork.String(), 10, y)
-	} else {
-		ebitenutil.DebugPrintAt(screen, "   "+g.manualWork.String(), 10, y)
+		return
 	}
+	ebitenutil.DebugPrintAt(screen, "   "+g.manualWork.String(), 10, y)
 }
 
 func (g *Game) drawBuildings(screen *ebiten.Image) {
@@ -184,9 +209,9 @@ func (g *Game) drawBuildings(screen *ebiten.Image) {
 		y := 70 + i*20
 		if g.cursor == i+1 {
 			ebitenutil.DebugPrintAt(screen, "-> "+building.String(g.upgrades), 10, y)
-		} else {
-			ebitenutil.DebugPrintAt(screen, "   "+building.String(g.upgrades), 10, y)
+			continue
 		}
+		ebitenutil.DebugPrintAt(screen, "   "+building.String(g.upgrades), 10, y)
 	}
 }
 
@@ -198,9 +223,9 @@ func (g *Game) drawUpgrades(screen *ebiten.Image) {
 		y := 70 + i*20
 		if g.cursor == i+1 {
 			ebitenutil.DebugPrintAt(screen, "-> "+upgrade.String(g), 10, y)
-		} else {
-			ebitenutil.DebugPrintAt(screen, "   "+upgrade.String(g), 10, y)
+			continue
 		}
+		ebitenutil.DebugPrintAt(screen, "   "+upgrade.String(g), 10, y)
 	}
 }
 
@@ -226,10 +251,9 @@ func (g *Game) GetTotalGenerateRate() float64 {
 			totalRate += building.totalGenerateRate(g.upgrades)
 		}
 	}
-	return round(totalRate)
+	return totalRate
 }
 
 func (g *Game) UpdateMoney(amount float64) {
 	g.money += amount
-	g.money = round(g.money)
 }
