@@ -2,55 +2,79 @@ package game
 
 import (
 	"image/color"
+	"math"
 	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/kmdkuk/clicker/config"
 )
 
 type Game struct {
-	money        float64       // Player's money
-	cursor       int           // Cursor position
-	manualWork   ManualWork    // Manual work option
-	buildings    []Building    // 建物のリスト
-	inputHandler *InputHandler // Handler to manage input processing
-	lastUpdate   time.Time     // 最後に更新された時間
+	config       *config.Config // Game configuration
+	money        float64        // Player's money
+	cursor       int            // Cursor position
+	manualWork   ManualWork     // Manual work option
+	buildings    []Building     // List of buildings
+	inputHandler *InputHandler  // Handler to manage input processing
+	lastUpdate   time.Time      // Last update time
+	popup        Popup          // Popup message
+	debugMessage string         // Debug message
 }
 
 type Building struct {
-	Label        string  // 表示するラベル
-	Unlocked     bool    // アンロックされているか
-	UnlockCost   float64 // アンロックに必要な金額
-	GenerateRate float64 // 毎秒生成する金額
-	Count        int     // 購入数
+	Name         string  // Display name
+	BaseCost     float64 // Base cost to unlock
+	GenerateRate float64 // Money generated per second
+	Count        int     // Number of purchases
+}
+
+// Cost method: Calculates the cost based on the current number of purchases
+func (b *Building) Cost() float64 {
+	// Example of cost increasing exponentially with the number of purchases
+	return b.BaseCost * math.Pow(1.15, float64(b.Count))
+}
+
+func (b *Building) Unlocked() bool {
+	return b.Count != 0
 }
 
 func (b *Building) toString() string {
-	if b.Unlocked {
-		return b.Label + " (Count: " + strconv.Itoa(b.Count) + ")"
+	str := b.Name + " ("
+	if b.Unlocked() {
+		str += "Next "
+	} else {
+		str += "Locked,"
 	}
-	return "Locked ($" + strconv.FormatFloat(b.UnlockCost, 'f', 2, 64) + ")"
+	str += "Cost: " + strconv.FormatFloat(b.Cost(), 'f', 2, 64) + ", Count: " + strconv.Itoa(b.Count) + ", GenerateRate: $" + strconv.FormatFloat(b.GenerateRate, 'f', 2, 64) + "/s)"
+	return str
 }
 
 type ManualWork struct {
-	Label string  // 表示するラベル
-	Value float64 // 手動で得られる金額
+	Name  string  // Display name
+	Value float64 // Money earned manually
 }
 
 func (m *ManualWork) toString() string {
-	return m.Label
+	return m.Name
 }
 
-func NewGame() *Game {
+type Popup struct {
+	Message string // Message to display
+	Active  bool   // Whether the popup is active
+}
+
+func NewGame(config *config.Config) *Game {
 	return &Game{
-		money:      0.0, // Initial money
-		cursor:     0,   // Initial cursor position
-		manualWork: ManualWork{Label: "Manual Work: $0.10", Value: 0.10},
+		config:     config,
+		money:      0, // Initial money
+		cursor:     0, // Initial cursor position
+		manualWork: ManualWork{Name: "Manual Work: $0.1", Value: 0.1},
 		buildings: []Building{
-			{Label: "Building 1: $0.05", Unlocked: false, UnlockCost: 1.0, GenerateRate: 0.01, Count: 0},
-			{Label: "Building 2: $0.10", Unlocked: false, UnlockCost: 10.0, GenerateRate: 0.05, Count: 0},
-			{Label: "Building 3: $0.20", Unlocked: false, UnlockCost: 100.0, GenerateRate: 0.10, Count: 0},
+			{Name: "Building 1", BaseCost: 1.0, GenerateRate: 0.01, Count: 0},
+			{Name: "Building 2", BaseCost: 10.0, GenerateRate: 0.05, Count: 0},
+			{Name: "Building 3", BaseCost: 100.0, GenerateRate: 0.10, Count: 0},
 		},
 		inputHandler: &InputHandler{},
 		lastUpdate:   time.Now(),
@@ -58,22 +82,31 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() error {
-	// 経過時間を計算
+	// Update the InputHandler
+	g.inputHandler.Update()
+
+	// If a popup is active
+	if g.popup.Active {
+		keyType := g.inputHandler.GetPressedKey()
+		if keyType == KeyTypeDecision {
+			g.popup.Active = false // Close the popup
+		}
+		return nil
+	}
+
+	// Regular update process
 	now := time.Now()
 	elapsed := now.Sub(g.lastUpdate).Seconds()
 	g.lastUpdate = now
 
-	// アンロック済みの建物から金を生成
+	// Generate money from unlocked buildings
 	for _, building := range g.buildings {
-		if building.Unlocked {
-			g.money += building.GenerateRate * float64(building.Count) * elapsed
+		if building.Unlocked() {
+			g.UpdateMoney(building.GenerateRate * float64(building.Count) * elapsed)
 		}
 	}
 
-	// InputHandler を更新
-	g.inputHandler.Update()
-
-	// 押されたキーを分類して取得
+	// Get the pressed key
 	keyType := g.inputHandler.GetPressedKey()
 	totalItems := len(g.buildings) + 1 // manualWork + buildings
 	switch keyType {
@@ -81,35 +114,35 @@ func (g *Game) Update() error {
 		if g.cursor > 0 {
 			g.cursor--
 		} else {
-			// 一番上にいる場合は一番下に循環
+			// If at the top, loop to the bottom
 			g.cursor = totalItems - 1
 		}
 	case KeyTypeDown:
 		if g.cursor < (totalItems - 1) {
 			g.cursor++
 		} else {
-			// 一番下にいる場合は一番上に循環
+			// If at the bottom, loop to the top
 			g.cursor = 0
 		}
 	case KeyTypeDecision:
-		// 決定キーの処理
+		// Decision key processing
 		if g.cursor == 0 {
-			// manualWork の処理
-			g.money += g.manualWork.Value
+			// Manual work processing
+			g.UpdateMoney(g.manualWork.Value)
 		} else {
-			// buildings の処理
+			// Building processing
 			building := &g.buildings[g.cursor-1]
-			if building.Unlocked {
-				// アンロック済みなら追加購入
-				if g.money >= building.UnlockCost {
-					g.money -= building.UnlockCost
-					building.Count++
+			cost := building.Cost() // Get the current purchase cost
+			if g.money >= cost {
+				g.UpdateMoney(-cost)
+				building.Count++
+			} else {
+				if building.Unlocked() {
+					g.ShowPopup("Not enough money to purchase!")
+				} else {
+					g.ShowPopup("Not enough money to unlock!")
 				}
-			} else if g.money >= building.UnlockCost {
-				// アンロック条件を満たしている場合はアンロック
-				g.money -= building.UnlockCost
-				building.Unlocked = true
-				building.Count = 1 // 初回購入
+				g.DebugMessage("Cost: " + strconv.FormatFloat(cost, 'f', 2, 64) + " > money: " + strconv.FormatFloat(g.money, 'f', 2, 64))
 			}
 		}
 	}
@@ -119,10 +152,18 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 0, 0, 255}) // Fill the background with black
+	// Draw the debug message if in debug mode
+	g.DebugPrint(screen)
 
 	// Draw the player's money
 	moneyText := "Money: $" + strconv.FormatFloat(g.money, 'f', 2, 64)
 	ebitenutil.DebugPrintAt(screen, moneyText, 10, 10)
+
+	// If a popup is active
+	if g.popup.Active {
+		ebitenutil.DebugPrintAt(screen, "Popup: "+g.popup.Message, 10, 200)
+		return
+	}
 
 	// Draw manualWork
 	y := 50
@@ -146,4 +187,25 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return 640, 480 // Set the game screen size
+}
+
+func (g *Game) ShowPopup(message string) {
+	g.popup.Message = message
+	g.popup.Active = true
+}
+
+func (g *Game) DebugMessage(message string) {
+	g.debugMessage = message
+}
+
+func (g *Game) DebugPrint(screen *ebiten.Image) {
+	if g.config.EnableDebug {
+		ebitenutil.DebugPrint(screen, g.debugMessage)
+	}
+}
+
+func (g *Game) UpdateMoney(amount float64) {
+	g.money += amount
+	// Round to avoid floating-point errors
+	g.money = math.Round(g.money*10000) / 10000
 }
