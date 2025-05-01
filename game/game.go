@@ -1,9 +1,9 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"math"
-	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -41,14 +41,10 @@ func (b *Building) Unlocked() bool {
 }
 
 func (b *Building) toString() string {
-	str := b.Name + " ("
 	if b.Unlocked() {
-		str += "Next "
-	} else {
-		str += "Locked,"
+		return fmt.Sprintf("%s (Next Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)", b.Name, b.Cost(), b.Count, b.GenerateRate)
 	}
-	str += "Cost: " + strconv.FormatFloat(b.Cost(), 'f', 2, 64) + ", Count: " + strconv.Itoa(b.Count) + ", GenerateRate: $" + strconv.FormatFloat(b.GenerateRate, 'f', 2, 64) + "/s)"
-	return str
+	return fmt.Sprintf("%s (Locked, Cost: $%.2f)", b.Name, b.Cost())
 }
 
 type ManualWork struct {
@@ -63,6 +59,15 @@ func (m *ManualWork) toString() string {
 type Popup struct {
 	Message string // Message to display
 	Active  bool   // Whether the popup is active
+}
+
+func (p *Popup) Show(message string) {
+	p.Message = message
+	p.Active = true
+}
+
+func (p *Popup) Close() {
+	p.Active = false
 }
 
 func NewGame(config *config.Config) *Game {
@@ -82,102 +87,115 @@ func NewGame(config *config.Config) *Game {
 }
 
 func (g *Game) Update() error {
-	// Update the InputHandler
-	g.inputHandler.Update()
-
-	// If a popup is active
+	// Handle popup
 	if g.popup.Active {
-		keyType := g.inputHandler.GetPressedKey()
-		if keyType == KeyTypeDecision {
-			g.popup.Active = false // Close the popup
-		}
+		g.handlePopup()
 		return nil
 	}
 
-	// Regular update process
+	// Update game state
+	g.updateBuildings()
+	g.handleInput()
+
+	return nil
+}
+
+func (g *Game) handlePopup() {
+	keyType := g.inputHandler.GetPressedKey()
+	if keyType == KeyTypeDecision {
+		g.popup.Close()
+	}
+}
+
+func (g *Game) updateBuildings() {
 	now := time.Now()
 	elapsed := now.Sub(g.lastUpdate).Seconds()
 	g.lastUpdate = now
 
-	// Generate money from unlocked buildings
 	for _, building := range g.buildings {
 		if building.Unlocked() {
 			g.UpdateMoney(building.GenerateRate * float64(building.Count) * elapsed)
 		}
 	}
+}
 
-	// Get the pressed key
+func (g *Game) handleInput() {
 	keyType := g.inputHandler.GetPressedKey()
 	totalItems := len(g.buildings) + 1 // manualWork + buildings
+
 	switch keyType {
 	case KeyTypeUp:
-		if g.cursor > 0 {
-			g.cursor--
-		} else {
-			// If at the top, loop to the bottom
-			g.cursor = totalItems - 1
-		}
+		g.cursor = (g.cursor - 1) % totalItems
 	case KeyTypeDown:
-		if g.cursor < (totalItems - 1) {
-			g.cursor++
-		} else {
-			// If at the bottom, loop to the top
-			g.cursor = 0
-		}
+		g.cursor = (g.cursor + 1) % totalItems
 	case KeyTypeDecision:
-		// Decision key processing
-		if g.cursor == 0 {
-			// Manual work processing
-			g.UpdateMoney(g.manualWork.Value)
+		g.handleDecision()
+	}
+}
+
+func (g *Game) handleDecision() {
+	if g.cursor == 0 {
+		// Manual work processing
+		g.UpdateMoney(g.manualWork.Value)
+	} else {
+		// Building processing
+		building := &g.buildings[g.cursor-1]
+		cost := building.Cost()
+		if g.money >= cost {
+			g.UpdateMoney(-cost)
+			building.Count++
 		} else {
-			// Building processing
-			building := &g.buildings[g.cursor-1]
-			cost := building.Cost() // Get the current purchase cost
-			if g.money >= cost {
-				g.UpdateMoney(-cost)
-				building.Count++
+			if building.Unlocked() {
+				g.ShowPopup("Not enough money to purchase!")
 			} else {
-				if building.Unlocked() {
-					g.ShowPopup("Not enough money to purchase!")
-				} else {
-					g.ShowPopup("Not enough money to unlock!")
-				}
-				g.DebugMessage("Cost: " + strconv.FormatFloat(cost, 'f', 2, 64) + " > money: " + strconv.FormatFloat(g.money, 'f', 2, 64))
+				g.ShowPopup("Not enough money to unlock!")
 			}
+			g.DebugMessage(fmt.Sprintf("Cost: %.2f > Money: %.2f", cost, g.money))
 		}
 	}
-
-	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 0, 0, 255}) // Fill the background with black
-	// Draw the debug message if in debug mode
-	g.DebugPrint(screen)
 
-	// Draw the player's money
-	moneyText := "Money: $" + strconv.FormatFloat(g.money, 'f', 2, 64)
-	ebitenutil.DebugPrintAt(screen, moneyText, 10, 10)
-
-	// If a popup is active
+	g.drawDebug(screen)
+	g.drawMoney(screen)
 	if g.popup.Active {
-		ebitenutil.DebugPrintAt(screen, "Popup: "+g.popup.Message, 10, 200)
+		g.drawPopup(screen)
 		return
 	}
+	g.drawManualWork(screen)
+	g.drawBuildings(screen)
+}
 
-	// Draw manualWork
+func (g *Game) drawDebug(screen *ebiten.Image) {
+	if g.config.EnableDebug {
+		ebitenutil.DebugPrint(screen, g.debugMessage)
+	}
+}
+
+func (g *Game) drawMoney(screen *ebiten.Image) {
+	moneyText := fmt.Sprintf("Money: $%.2f (Total Generate Rate: $%.2f/s)", g.money, g.GetTotalGenerateRate())
+	ebitenutil.DebugPrintAt(screen, moneyText, 10, 10)
+}
+
+func (g *Game) drawPopup(screen *ebiten.Image) {
+	ebitenutil.DebugPrintAt(screen, "Popup: "+g.popup.Message, 10, 200)
+}
+
+func (g *Game) drawManualWork(screen *ebiten.Image) {
 	y := 50
 	if g.cursor == 0 {
 		ebitenutil.DebugPrintAt(screen, "-> "+g.manualWork.toString(), 10, y)
 	} else {
 		ebitenutil.DebugPrintAt(screen, "   "+g.manualWork.toString(), 10, y)
 	}
+}
 
-	// Draw buildings
+func (g *Game) drawBuildings(screen *ebiten.Image) {
 	for i, building := range g.buildings {
 		y := 70 + i*20
 		if g.cursor == i+1 {
-			// Highlight the position of the cursor
 			ebitenutil.DebugPrintAt(screen, "-> "+building.toString(), 10, y)
 		} else {
 			ebitenutil.DebugPrintAt(screen, "   "+building.toString(), 10, y)
@@ -202,6 +220,17 @@ func (g *Game) DebugPrint(screen *ebiten.Image) {
 	if g.config.EnableDebug {
 		ebitenutil.DebugPrint(screen, g.debugMessage)
 	}
+}
+
+// GetTotalGenerateRate calculates the total money generation rate from all unlocked buildings
+func (g *Game) GetTotalGenerateRate() float64 {
+	totalRate := 0.0
+	for _, building := range g.buildings {
+		if building.Unlocked() {
+			totalRate += building.GenerateRate * float64(building.Count)
+		}
+	}
+	return totalRate
 }
 
 func (g *Game) UpdateMoney(amount float64) {
