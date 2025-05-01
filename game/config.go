@@ -1,4 +1,4 @@
-package config
+package game
 
 type Config struct {
 	EnableDebug bool // デバッグモードの有効化
