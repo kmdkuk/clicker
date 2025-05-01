@@ -9,10 +9,10 @@ type Upgrade struct {
 	isPurchased        bool                  // Whether the upgrade has been purchased
 	isTargetManualWork bool                  // Whether the upgrade is for manual work
 	targetBuilding     int                   // Target building index (if applicable)
-	isReleased         func(*Game) bool      // Whether the upgrade is released
+	isReleased         func(GameState) bool  // Whether the upgrade is released
 }
 
-func (u *Upgrade) String(g *Game) string {
+func (u *Upgrade) String(g GameState) string {
 	if u.isPurchased {
 		return u.name + " (Purchased)"
 	}

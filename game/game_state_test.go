@@ -7,23 +7,29 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("GameState", func() {
-	var gameState *GameState
+var _ = Describe("DefaultGameState", func() {
+	var gameState DefaultGameState
 
 	BeforeEach(func() {
-		gameState = NewGameState() // Update to use gameState
+		gameState = DefaultGameState{
+			money:      0,
+			manualWork: ManualWork{name: "Manual Work: $0.1", value: 0.1, count: 0},
+			buildings:  newBuildings(),
+			upgrades:   newUpgrades(),
+			lastUpdate: time.Now(),
+		} // Update to use gameState
 	})
 
 	Describe("UpdateMoney", func() {
 		It("should correctly add money", func() {
 			gameState.UpdateMoney(10.0)
-			Expect(gameState.money).To(Equal(10.0))
+			Expect(gameState.GetMoney()).To(Equal(10.0))
 		})
 
 		It("should correctly subtract money", func() {
 			gameState.UpdateMoney(10.0)
 			gameState.UpdateMoney(-5.0)
-			Expect(gameState.money).To(Equal(5.0))
+			Expect(gameState.GetMoney()).To(Equal(5.0))
 		})
 	})
 
@@ -33,16 +39,16 @@ var _ = Describe("GameState", func() {
 			gameState.buildings[0].count = 1                 // Unlock the first building
 			gameState.lastUpdate = now.Add(-1 * time.Second) // Simulate 1 second elapsed
 
-			gameState.updateBuildings(now)
-			Expect(gameState.money).To(Equal(gameState.buildings[0].baseGenerateRate))
+			gameState.UpdateBuildings(now)
+			Expect(gameState.GetMoney()).To(Equal(gameState.buildings[0].baseGenerateRate))
 		})
 
 		It("should not generate income from locked buildings", func() {
 			now := time.Now()
 			gameState.lastUpdate = now.Add(-1 * time.Second) // Simulate 1 second elapsed
 
-			gameState.updateBuildings(now)
-			Expect(gameState.money).To(Equal(0.0))
+			gameState.UpdateBuildings(now)
+			Expect(gameState.GetMoney()).To(Equal(0.0))
 		})
 	})
 
@@ -57,6 +63,56 @@ var _ = Describe("GameState", func() {
 
 		It("should return 0 if no buildings are unlocked", func() {
 			Expect(gameState.GetTotalGenerateRate()).To(Equal(0.0))
+		})
+	})
+
+	Describe("PurchaseBuildingAction", func() {
+		It("should successfully purchase a building", func() {
+			gameState.UpdateMoney(10.0) // Add enough money to purchase
+			success, message := gameState.PurchaseBuildingAction(0)
+			Expect(success).To(BeTrue())
+			Expect(message).To(Equal("Building purchased successfully!"))
+			Expect(gameState.buildings[0].count).To(Equal(1))
+		})
+
+		It("should fail to purchase a building if not enough money", func() {
+			success, message := gameState.PurchaseBuildingAction(0)
+			Expect(success).To(BeFalse())
+			Expect(message).To(Equal("Not enough money to unlock!"))
+		})
+
+		It("should fail to purchase an invalid building", func() {
+			success, message := gameState.PurchaseBuildingAction(-1)
+			Expect(success).To(BeFalse())
+			Expect(message).To(Equal("Invalid building selection!"))
+		})
+	})
+
+	Describe("PurchaseUpgradeAction", func() {
+		It("should successfully purchase an upgrade", func() {
+			gameState.upgrades[0].isReleased = func(g GameState) bool {
+				return true
+			}
+			gameState.UpdateMoney(10.0) // Add enough money to purchase
+			success, message := gameState.PurchaseUpgradeAction(0)
+			Expect(success).To(BeTrue())
+			Expect(message).To(Equal("Upgrade purchased successfully!"))
+			Expect(gameState.upgrades[0].isPurchased).To(BeTrue())
+		})
+
+		It("should fail to purchase an upgrade if not enough money", func() {
+			gameState.upgrades[0].isReleased = func(g GameState) bool {
+				return true
+			}
+			success, message := gameState.PurchaseUpgradeAction(0)
+			Expect(success).To(BeFalse())
+			Expect(message).To(Equal("Not enough money for upgrade!"))
+		})
+
+		It("should fail to purchase an invalid upgrade", func() {
+			success, message := gameState.PurchaseUpgradeAction(-1)
+			Expect(success).To(BeFalse())
+			Expect(message).To(Equal("Invalid upgrade selection!"))
 		})
 	})
 

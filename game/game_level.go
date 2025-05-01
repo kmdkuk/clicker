@@ -19,8 +19,8 @@ func newUpgrades() []Upgrade {
 				return value * 1.1
 			},
 			isPurchased: false, isTargetManualWork: true, targetBuilding: -1,
-			isReleased: func(g *Game) bool {
-				return g.gameState.manualWork.count >= 10
+			isReleased: func(g GameState) bool {
+				return g.GetManualWork().count >= 10
 			},
 		},
 	}

@@ -1,9 +1,25 @@
 package game
 
-import "time"
+import (
+	"time"
+)
+
+type GameState interface {
+	ManualWork()                                             // マニュアルワークを実行します
+	UpdateMoney(amount float64)                              // お金を更新します
+	PurchaseBuildingAction(buildingIndex int) (bool, string) // 建物を購入します
+	PurchaseUpgradeAction(upgradeIndex int) (bool, string)   // アップグレードを購入します
+	GetTotalGenerateRate() float64                           // 総生成レートを取得します
+	UpdateBuildings(now time.Time)
+	GetBuildings() []Building
+	GetUpgrades() []Upgrade
+	SetUpgrades(upgrades []Upgrade)
+	GetMoney() float64
+	GetManualWork() *ManualWork
+}
 
 // GameState はゲームの状態を管理します
-type GameState struct {
+type DefaultGameState struct {
 	money      float64
 	manualWork ManualWork
 	buildings  []Building
@@ -11,8 +27,8 @@ type GameState struct {
 	lastUpdate time.Time
 }
 
-func NewGameState() *GameState {
-	return &GameState{
+func NewGameState() GameState {
+	return &DefaultGameState{
 		money:      0,
 		manualWork: ManualWork{name: "Manual Work: $0.1", value: 0.1, count: 0},
 		buildings:  newBuildings(),
@@ -21,15 +37,79 @@ func NewGameState() *GameState {
 	}
 }
 
-func (g *GameState) Work() {
+func (g *DefaultGameState) GetBuildings() []Building {
+	return g.buildings
+}
+func (g *DefaultGameState) GetUpgrades() []Upgrade {
+	return g.upgrades
+}
+func (g *DefaultGameState) SetUpgrades(upgrades []Upgrade) {
+	g.upgrades = upgrades
+}
+func (g *DefaultGameState) GetMoney() float64 {
+	return g.money
+}
+func (g *DefaultGameState) GetManualWork() *ManualWork {
+	return &g.manualWork
+}
+func (g *DefaultGameState) SetManualWork(manualWork ManualWork) {
+	g.manualWork = manualWork
+}
+
+func (g *DefaultGameState) ManualWork() {
 	g.UpdateMoney(g.manualWork.Work(g.upgrades))
 }
 
-func (g *GameState) UpdateMoney(amount float64) {
+func (g *DefaultGameState) UpdateMoney(amount float64) {
 	g.money += amount
 }
 
-func (g *GameState) GetTotalGenerateRate() float64 {
+func (g *DefaultGameState) PurchaseBuildingAction(buildingIndex int) (bool, string) {
+	if buildingIndex < 0 || buildingIndex >= len(g.buildings) {
+		return false, "Invalid building selection!"
+	}
+
+	building := &g.buildings[buildingIndex]
+	cost := building.Cost()
+
+	if g.money < cost {
+		if building.IsUnlocked() {
+			return false, "Not enough money to purchase!"
+		}
+		return false, "Not enough money to unlock!"
+	}
+
+	g.UpdateMoney(-cost)
+	building.count++
+	return true, "Building purchased successfully!"
+}
+
+// PurchaseUpgradeAction はアップグレードの購入を試みて結果を返します
+func (g *DefaultGameState) PurchaseUpgradeAction(upgradeIndex int) (bool, string) {
+	if upgradeIndex < 0 || upgradeIndex >= len(g.upgrades) {
+		return false, "Invalid upgrade selection!"
+	}
+
+	upgrade := &g.upgrades[upgradeIndex]
+
+	if upgrade.isPurchased {
+		return false, "Upgrade already purchased!"
+	}
+
+	if !upgrade.isReleased(g) {
+		return false, "Upgrade not available yet!"
+	}
+
+	if g.money < upgrade.cost {
+		return false, "Not enough money for upgrade!"
+	}
+
+	g.UpdateMoney(-upgrade.cost)
+	upgrade.isPurchased = true
+	return true, "Upgrade purchased successfully!"
+}
+
+func (g *DefaultGameState) GetTotalGenerateRate() float64 {
 	totalRate := 0.0
 	for _, building := range g.buildings {
 		if building.IsUnlocked() {
@@ -39,7 +119,7 @@ func (g *GameState) GetTotalGenerateRate() float64 {
 	return totalRate
 }
 
-func (g *GameState) updateBuildings(now time.Time) {
+func (g *DefaultGameState) UpdateBuildings(now time.Time) {
 	elapsed := now.Sub(g.lastUpdate).Seconds()
 	g.lastUpdate = now
 
