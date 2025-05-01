@@ -10,7 +10,7 @@ import (
 func main() {
 	g := game.NewGame()
 	ebiten.SetWindowSize(800, 600)
-	ebiten.SetWindowTitle("Ebiten Text Game")
+	ebiten.SetWindowTitle("Clicker")
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
