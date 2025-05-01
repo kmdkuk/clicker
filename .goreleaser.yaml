@@ -12,7 +12,7 @@ builds:
   - id: clicker
     env:
       - CGO_ENABLED=0
-    main: .
+    main: ./cmd/clicker/main.go
     binary: clicker
     goos:
       - js
