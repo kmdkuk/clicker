@@ -14,7 +14,9 @@ type Building struct {
 
 // Cost method: Calculates the cost based on the current number of purchases
 func (b *Building) Cost() float64 {
-	// Example of cost increasing exponentially with the number of purchases
+	if b.count == 0 {
+		return b.baseCost
+	}
 	return b.baseCost * math.Pow(1.15, float64(b.count))
 }
 

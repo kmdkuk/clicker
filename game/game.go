@@ -172,7 +172,7 @@ func (g *Game) GetTotalGenerateRate() float64 {
 	totalRate := 0.0
 	for _, building := range g.buildings {
 		if building.IsUnlocked() {
-			totalRate += building.baseGenerateRate * float64(building.count)
+			totalRate += building.totalGenerateRate()
 		}
 	}
 	return totalRate

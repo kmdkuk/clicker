@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -30,7 +32,7 @@ var _ = Describe("Building", func() {
 		It("should calculate the correct cost for multiple purchases", func() {
 			building.count = 5
 			expectedCost := 10.0
-			for i := 0; i < 5; i++ {
+			for i := 0; i < building.count; i++ {
 				expectedCost *= 1.15
 			}
 			Expect(building.Cost()).To(Equal(expectedCost))
@@ -62,7 +64,12 @@ var _ = Describe("Building", func() {
 
 		It("should return the correct string when unlocked with multiple purchases", func() {
 			building.count = 3
-			expected := "Test Building (Next Cost: $15.15, Count: 3, Generate Rate: $1.50/s)"
+			expectedCost := 10.0
+			for i := 0; i < building.count; i++ {
+				expectedCost *= 1.15
+			}
+
+			expected := fmt.Sprintf("Test Building (Next Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)", expectedCost, building.count, building.baseGenerateRate*float64(building.count))
 			Expect(building.String()).To(Equal(expected))
 		})
 	})
