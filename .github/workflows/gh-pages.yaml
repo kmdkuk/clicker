@@ -1,0 +1,50 @@
+name: Github Pages
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - "main"
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: make build-wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pages
+          path: pages
+          retention-days: 1
+  publish:
+    name: Publish on GitHub Pages
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+      - run: rm -rf *
+      - uses: actions/download-artifact@v4
+        with:
+          name: pages
+      - run: ls -R
+      - run: git add .
+      - name: Check diff
+        run: |
+          diffs=$(git status -s)
+          if [ "$diffs" = "" ]; then
+            echo "NO_DIFF=1" >> $GITHUB_ENV
+          else
+            printf "%s\n" "$diffs"
+          fi
+      - name: Commit changes
+        if: env.NO_DIFF != '1'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'update'
+      - name: Push to gh-pages
+        if: github.ref == 'refs/heads/main' && env.NO_DIFF != '1'
+        run: git push origin gh-pages
