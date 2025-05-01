@@ -7,16 +7,20 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func newBuilding() *Building {
+	return &Building{
+		id:               1,
+		name:             "Test Building",
+		baseCost:         10.0,
+		baseGenerateRate: 0.5,
+		count:            0,
+	}
+}
+
 var _ = Describe("Building", func() {
-	var building Building
+	building := newBuilding()
 
 	BeforeEach(func() {
-		building = Building{
-			name:             "Test Building",
-			baseCost:         10.0,
-			baseGenerateRate: 0.5,
-			count:            0,
-		}
 	})
 
 	Describe("Cost", func() {
@@ -30,17 +34,15 @@ var _ = Describe("Building", func() {
 		})
 
 		It("should calculate the correct cost for multiple purchases", func() {
-			building.count = 5
-			expectedCost := 10.0
-			for i := 0; i < building.count; i++ {
-				expectedCost *= 1.15
-			}
-			Expect(building.Cost()).To(Equal(expectedCost))
+			building.count = 3
+			expectedCost := 10.0 * 1.15 * 1.15 * 1.15
+			Expect(building.Cost()).To(BeNumerically("~", expectedCost, 0.001))
 		})
 	})
 
 	Describe("IsUnlocked", func() {
 		It("should return false when the building is locked", func() {
+			building.count = 0
 			Expect(building.IsUnlocked()).To(BeFalse())
 		})
 
@@ -52,14 +54,15 @@ var _ = Describe("Building", func() {
 
 	Describe("String", func() {
 		It("should return the correct string when locked", func() {
+			building.count = 0
 			expected := "Test Building (Locked, Cost: $10.00, Count: 0, Generate Rate: $0.50/s)"
-			Expect(building.String()).To(Equal(expected))
+			Expect(building.String(nil)).To(Equal(expected))
 		})
 
 		It("should return the correct string when unlocked", func() {
 			building.count = 1
 			expected := "Test Building (Next Cost: $11.50, Count: 1, Generate Rate: $0.50/s)"
-			Expect(building.String()).To(Equal(expected))
+			Expect(building.String(nil)).To(Equal(expected))
 		})
 
 		It("should return the correct string when unlocked with multiple purchases", func() {
@@ -70,18 +73,37 @@ var _ = Describe("Building", func() {
 			}
 
 			expected := fmt.Sprintf("Test Building (Next Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)", expectedCost, building.count, building.baseGenerateRate*float64(building.count))
-			Expect(building.String()).To(Equal(expected))
+			Expect(building.String(nil)).To(Equal(expected))
 		})
 	})
 
 	Describe("GenerateIncome", func() {
 		It("should return 0 when the building is locked", func() {
-			Expect(building.GenerateIncome(10.0)).To(Equal(0.0))
+			building.count = 0
+			Expect(building.GenerateIncome(10.0, nil)).To(Equal(0.0))
 		})
 
 		It("should calculate the correct income when the building is unlocked", func() {
 			building.count = 2
-			Expect(building.GenerateIncome(10.0)).To(Equal(0.5 * 2 * 10.0))
+			expectedIncome := 0.5 * 2 * 10.0
+			Expect(building.GenerateIncome(10.0, nil)).To(BeNumerically("~", expectedIncome, 0.001))
+		})
+	})
+
+	Describe("totalGenerateRate", func() {
+		It("should calculate the correct total generate rate without upgrades", func() {
+			building.count = 2
+			Expect(building.totalGenerateRate(nil)).To(Equal(0.5 * 2))
+		})
+
+		It("should calculate the correct total generate rate with upgrades", func() {
+			building.count = 2
+			upgrades := []Upgrade{
+				{isTargetManualWork: false, targetBuilding: 1, isPurchased: true, effect: func(rate float64) float64 {
+					return rate * 1.5
+				}},
+			}
+			Expect(building.totalGenerateRate(upgrades)).To(BeNumerically("~", 0.5*1.5*2, 0.001))
 		})
 	})
 })

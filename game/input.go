@@ -30,8 +30,7 @@ type DefaultInputHandler struct {
 
 // Update method to record the pressed key
 func (ih *DefaultInputHandler) Update() {
-	ih.pressedKey = ebiten.Key(0) // Initialize
-
+	ih.pressedKey = ebiten.KeyMeta // Initialize ebiten.Key(0) => 'A'
 	// Record the pressed key
 	for _, key := range inpututil.AppendJustPressedKeys(nil) {
 		ih.pressedKey = key

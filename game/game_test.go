@@ -52,26 +52,28 @@ var _ = Describe("Game", func() {
 
 	Describe("updateBuildings", func() {
 		It("should generate income from unlocked buildings", func() {
-			game.buildings[0].count = 1                        // Unlock the first building
-			game.lastUpdate = time.Now().Add(-1 * time.Second) // Simulate 1 second elapsed
+			now := time.Now()
+			game.buildings[0].count = 1                 // Unlock the first building
+			game.lastUpdate = now.Add(-1 * time.Second) // Simulate 1 second elapsed
 
-			game.updateBuildings()
+			game.updateBuildings(now)
 			Expect(game.money).To(Equal(game.buildings[0].baseGenerateRate))
 		})
 
 		It("should not generate income from locked buildings", func() {
-			game.lastUpdate = time.Now().Add(-1 * time.Second) // Simulate 1 second elapsed
+			now := time.Now()
+			game.lastUpdate = now.Add(-1 * time.Second) // Simulate 1 second elapsed
 
-			game.updateBuildings()
+			game.updateBuildings(now)
 			Expect(game.money).To(Equal(0.0))
 		})
 	})
 
-	Describe("handleDecision", func() {
+	Describe("handleDecision with page=0", func() {
 		It("should add money for manual work", func() {
 			game.cursor = 0 // Select manual work
 			game.handleDecision()
-			Expect(game.money).To(Equal(game.manualWork.Value))
+			Expect(game.money).To(Equal(0.1))
 		})
 
 		It("should purchase a building if enough money is available", func() {
@@ -90,6 +92,137 @@ var _ = Describe("Game", func() {
 			Expect(game.popup.Active).To(BeTrue()) // Popup should be active
 			Expect(game.popup.Message).To(Equal("Not enough money to unlock!"))
 		})
+
+		It("should show a popup if not enough money is available when unlocked", func() {
+			game.cursor = 1             // Select the first building
+			game.buildings[0].count = 1 // Unlock the building
+
+			game.handleDecision()
+
+			Expect(game.popup.Active).To(BeTrue()) // Popup should be active
+			Expect(game.popup.Message).To(Equal("Not enough money to purchase!"))
+		})
+
+		It("should correctly apply upgrades when performing manual work", func() {
+			// Setup: Enable an upgrade that doubles manual work value
+			game.upgrades = []Upgrade{
+				{
+					name:               "Double Manual Work",
+					isTargetManualWork: true,
+					isPurchased:        true,
+					effect: func(value float64) float64 {
+						return value * 2
+					},
+				},
+			}
+			game.cursor = 0 // Select manual work
+
+			// Perform manual work
+			game.handleDecision()
+
+			// Expect the money to increase by the upgraded manual work value
+			expectedMoney := 0.1 * 2
+			Expect(game.money).To(Equal(expectedMoney))
+		})
+	})
+
+	Describe("handleDecision with page=1 and cursor > 0", func() {
+		BeforeEach(func() {
+			game.page = 1 // Set to the second page
+			game.upgrades = []Upgrade{
+				{
+					name:               "Test Upgrade 1",
+					isPurchased:        false,
+					isTargetManualWork: false,
+					targetBuilding:     1,
+					cost:               10.0,
+					effect: func(value float64) float64 {
+						return value * 2
+					},
+					isReleased: func(*Game) bool {
+						return true
+					},
+				},
+				{
+					name:               "Test Upgrade 2",
+					isPurchased:        false,
+					isTargetManualWork: false,
+					targetBuilding:     1,
+					cost:               20.0,
+					effect: func(value float64) float64 {
+						return value + 5
+					},
+					isReleased: func(*Game) bool {
+						return true
+					},
+				},
+			}
+		})
+
+		It("should purchase an upgrade if enough money is available", func() {
+			game.cursor = 1        // Select the first upgrade
+			game.UpdateMoney(10.0) // Add enough money to purchase the upgrade
+
+			game.handleDecision()
+
+			Expect(game.money).To(BeNumerically("<", 10.0))                         // Money should decrease
+			Expect(game.upgrades[0].isPurchased).To(BeTrue())                       // Upgrade should be marked as purchased
+			Expect(game.popup.Active).To(BeTrue())                                  // Popup should be active
+			Expect(game.popup.Message).To(Equal("Upgrade purchased successfully!")) // Correct popup message
+		})
+
+		It("should show a popup if not enough money is available for the upgrade", func() {
+			game.cursor = 1       // Select the first upgrade
+			game.UpdateMoney(5.0) // Not enough money to purchase the upgrade
+
+			game.handleDecision()
+
+			Expect(game.upgrades[0].isPurchased).To(BeFalse())                    // Upgrade should not be purchased
+			Expect(game.popup.Active).To(BeTrue())                                // Popup should be active
+			Expect(game.popup.Message).To(Equal("Not enough money for upgrade!")) // Correct popup message
+		})
+
+		It("should not allow purchasing an already purchased upgrade", func() {
+			game.cursor = 1                     // Select the first upgrade
+			game.UpdateMoney(10.0)              // Add enough money to purchase the upgrade
+			game.upgrades[0].isPurchased = true // Mark the upgrade as already purchased
+
+			game.handleDecision()
+
+			Expect(game.money).To(Equal(10.0))                                 // Money should not decrease
+			Expect(game.popup.Active).To(BeTrue())                             // Popup should be active
+			Expect(game.popup.Message).To(Equal("Upgrade already purchased!")) // Correct popup message
+		})
+
+		It("should show a popup if the upgrade is not yet available", func() {
+			game.page = 1   // Set to the second page
+			game.cursor = 1 // Select the first upgrade
+			game.upgrades = []Upgrade{
+				{
+					name:               "Test Upgrade 1",
+					isTargetManualWork: false,
+					isPurchased:        false,
+					targetBuilding:     1,
+					cost:               10.0,
+					effect: func(value float64) float64 {
+						return value * 2
+					},
+					isReleased: func(*Game) bool {
+						return false // Upgrade is not yet available
+					},
+				},
+			}
+
+			game.UpdateMoney(10.0) // Add enough money to purchase the upgrade
+			game.handleDecision()
+
+			// Assert that the upgrade was not purchased
+			Expect(game.upgrades[0].isPurchased).To(BeFalse())
+
+			// Assert that the popup is active with the correct message
+			Expect(game.popup.Active).To(BeTrue())
+			Expect(game.popup.Message).To(Equal("Upgrade not available yet!"))
+		})
 	})
 
 	Describe("GetTotalGenerateRate", func() {
@@ -97,8 +230,8 @@ var _ = Describe("Game", func() {
 			game.buildings[0].count = 1
 			game.buildings[1].count = 2
 
-			expectedRate := game.buildings[0].baseGenerateRate*1 + game.buildings[1].baseGenerateRate*2
-			Expect(game.GetTotalGenerateRate()).To(Equal(expectedRate))
+			expectedRate := round(game.buildings[0].baseGenerateRate*1) + round(game.buildings[1].baseGenerateRate*2)
+			Expect(game.GetTotalGenerateRate()).To(Equal(round(expectedRate)))
 		})
 
 		It("should return 0 if no buildings are unlocked", func() {
@@ -144,7 +277,39 @@ var _ = Describe("Game", func() {
 			game.cursor = 0 // Select manual work
 
 			game.handleInput()
-			Expect(game.money).To(Equal(game.manualWork.Value)) // Money should increase
+			Expect(game.money).To(Equal(game.manualWork.Value(game.upgrades))) // Money should increase
+		})
+
+		It("should move to the next page when KeyTypeRight is pressed", func() {
+			game.page = 0 // Start on the first page
+			mockInputHandler.pressedKey = KeyTypeRight
+
+			game.handleInput()
+			Expect(game.page).To(Equal(1)) // Page should move to the second page
+		})
+
+		It("should wrap to the first page when KeyTypeRight is pressed on the last page", func() {
+			game.page = 1 // Start on the last page
+			mockInputHandler.pressedKey = KeyTypeRight
+
+			game.handleInput()
+			Expect(game.page).To(Equal(0)) // Page should wrap to the first page
+		})
+
+		It("should move to the previous page when KeyTypeLeft is pressed", func() {
+			game.page = 1 // Start on the second page
+			mockInputHandler.pressedKey = KeyTypeLeft
+
+			game.handleInput()
+			Expect(game.page).To(Equal(0)) // Page should move to the first page
+		})
+
+		It("should wrap to the last page when KeyTypeLeft is pressed on the first page", func() {
+			game.page = 0 // Start on the first page
+			mockInputHandler.pressedKey = KeyTypeLeft
+
+			game.handleInput()
+			Expect(game.page).To(Equal(1)) // Page should wrap to the last page
 		})
 	})
 })
