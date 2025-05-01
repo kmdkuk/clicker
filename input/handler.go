@@ -17,25 +17,25 @@ const (
 	KeyTypeNone                    // No input or other keys
 )
 
-// InputHandler is an interface for handling input
-type InputHandler interface {
+// Handler is an interface for handling input
+type Handler interface {
 	Update()
 	GetPressedKey() KeyType
 }
 
-func NewInputHandler() InputHandler {
-	return &DefaultInputHandler{
+func NewHandler() Handler {
+	return &DefaultHandler{
 		pressedKey: ebiten.KeyMeta, // Initialize with a default key
 	}
 }
 
-// DefaultInputHandler is the default implementation of InputHandler
-type DefaultInputHandler struct {
+// DefaultHandler is the default implementation of InputHandler
+type DefaultHandler struct {
 	pressedKey ebiten.Key // Stores the pressed key
 }
 
 // Update method to record the pressed key
-func (ih *DefaultInputHandler) Update() {
+func (ih *DefaultHandler) Update() {
 	ih.pressedKey = ebiten.KeyMeta // Initialize ebiten.Key(0) => 'A'
 	// Record the pressed key
 	for _, key := range inpututil.AppendJustPressedKeys(nil) {
@@ -45,7 +45,7 @@ func (ih *DefaultInputHandler) Update() {
 }
 
 // GetPressedKey method to classify and retrieve the pressed key
-func (ih *DefaultInputHandler) GetPressedKey() KeyType {
+func (ih *DefaultHandler) GetPressedKey() KeyType {
 	switch ih.pressedKey {
 	case ebiten.KeyArrowUp, ebiten.KeyW, ebiten.KeyK:
 		return KeyTypeUp // Direction key: Up

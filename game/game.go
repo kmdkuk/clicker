@@ -15,14 +15,14 @@ import (
 )
 
 type Game struct {
-	config       *config.Config     // Game configuration
-	cursor       int                // Cursor position
-	page         int                // Page position
-	gameState    state.GameState    // Game state
-	decider      input.Decider      // Decision maker
-	inputHandler input.InputHandler // Handler to manage input processing
-	popup        ui.Popup           // Popup message
-	debugMessage string             // Debug message
+	config       *config.Config  // Game configuration
+	cursor       int             // Cursor position
+	page         int             // Page position
+	gameState    state.GameState // Game state
+	decider      input.Decider   // Decision maker
+	inputHandler input.Handler   // Handler to manage input processing
+	popup        ui.Popup        // Popup message
+	debugMessage string          // Debug message
 }
 
 func NewGame(config *config.Config) *Game {
@@ -33,7 +33,7 @@ func NewGame(config *config.Config) *Game {
 		page:         0, // Initial page position,
 		gameState:    gameState,
 		decider:      input.NewDefaultDecider(gameState),
-		inputHandler: input.NewInputHandler(),
+		inputHandler: input.NewHandler(),
 		popup:        ui.Popup{Active: false, Message: ""},
 	}
 	game.validateCursorPosition()
