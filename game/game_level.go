@@ -20,7 +20,7 @@ func newUpgrades() []Upgrade {
 			},
 			isPurchased: false, isTargetManualWork: true, targetBuilding: -1,
 			isReleased: func(g *Game) bool {
-				return g.manualWork.count >= 10
+				return g.gameState.manualWork.count >= 10
 			},
 		},
 	}

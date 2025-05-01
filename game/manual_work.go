@@ -10,8 +10,9 @@ func (m *ManualWork) String() string {
 	return m.name
 }
 
-func (m *ManualWork) Work() {
+func (m *ManualWork) Work(upgrades []Upgrade) float64 {
 	m.count++
+	return m.Value(upgrades)
 }
 
 func (m *ManualWork) Value(upgrades []Upgrade) float64 {

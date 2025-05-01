@@ -11,29 +11,20 @@ import (
 
 type Game struct {
 	config       *Config      // Game configuration
-	money        float64      // Player's money
 	cursor       int          // Cursor position
 	page         int          // Page position
-	manualWork   ManualWork   // Manual work option
-	buildings    []Building   // List of buildings
-	upgrades     []Upgrade    // List of upgrades
+	gameState    *GameState   // Game state
 	inputHandler InputHandler // Handler to manage input processing
-	lastUpdate   time.Time    // Last update time
 	popup        Popup        // Popup message
 	debugMessage string       // Debug message
 }
 
 func NewGame(config *Config) *Game {
 	game := &Game{
-		config:       config,
-		money:        0, // Initial money
-		cursor:       0, // Initial cursor position
-		page:         0, // Initial page position,
-		manualWork:   ManualWork{name: "Manual Work: $0.1", value: 0.1, count: 0},
-		buildings:    newBuildings(),
-		upgrades:     newUpgrades(),
-		inputHandler: &DefaultInputHandler{}, // Use the default implementation
-		lastUpdate:   time.Now(),
+		config:    config,
+		cursor:    0, // Initial cursor position
+		page:      0, // Initial page position,
+		gameState: NewGameState(),
 	}
 	game.validateCursorPosition()
 	return game
@@ -42,7 +33,7 @@ func NewGame(config *Config) *Game {
 func (g *Game) Update() error {
 	g.inputHandler.Update() // Update input handler
 
-	g.updateBuildings(time.Now())
+	g.gameState.updateBuildings(time.Now())
 
 	// Handle popup
 	if g.popup.Active {
@@ -56,24 +47,13 @@ func (g *Game) Update() error {
 	return nil
 }
 
-func (g *Game) updateBuildings(now time.Time) {
-	elapsed := now.Sub(g.lastUpdate).Seconds()
-	g.lastUpdate = now
-
-	for _, building := range g.buildings {
-		if building.IsUnlocked() {
-			g.UpdateMoney(building.GenerateIncome(elapsed, g.upgrades))
-		}
-	}
-}
-
 func (g *Game) handleInput() {
 	keyType := g.inputHandler.GetPressedKey()
 	g.DebugMessage(fmt.Sprintf("Key Pressed: %v", keyType))
-	totalPages := 2                    // Two pages: manual work + buildings, upgrades
-	totalItems := len(g.buildings) + 1 // manualWork + buildings
+	totalPages := 2                              // Two pages: manual work + buildings, upgrades
+	totalItems := len(g.gameState.buildings) + 1 // manualWork + buildings
 	if g.page == 1 {
-		totalItems = len(g.upgrades) + 1 // manualWork + upgrades
+		totalItems = len(g.gameState.upgrades) + 1 // manualWork + upgrades
 	}
 
 	switch keyType {
@@ -93,9 +73,9 @@ func (g *Game) handleInput() {
 
 // validateCursorPosition はカーソル位置が有効範囲内にあることを確保します
 func (g *Game) validateCursorPosition() {
-	totalItems := len(g.buildings) + 1 // Manual Work + Buildings
+	totalItems := len(g.gameState.buildings) + 1 // Manual Work + Buildings
 	if g.page == 1 {
-		totalItems = len(g.upgrades) + 1 // Manual Work + Upgrades
+		totalItems = len(g.gameState.upgrades) + 1 // Manual Work + Upgrades
 	}
 
 	// カーソルが範囲外の場合、安全な値に設定
@@ -107,9 +87,9 @@ func (g *Game) validateCursorPosition() {
 }
 
 func (g *Game) handleDecision() {
-	totalItems := len(g.buildings) + 1
+	totalItems := len(g.gameState.buildings) + 1
 	if g.page == 1 {
-		totalItems = len(g.upgrades) + 1
+		totalItems = len(g.gameState.upgrades) + 1
 	}
 	if g.cursor < 0 || totalItems <= g.cursor {
 		g.DebugMessage(fmt.Sprintf("Invalid cursor position: %d", g.cursor))
@@ -117,20 +97,19 @@ func (g *Game) handleDecision() {
 	}
 	if g.cursor == 0 {
 		// Manual work processing
-		g.manualWork.Work()
-		g.UpdateMoney(g.manualWork.Value(g.upgrades))
+		g.gameState.Work()
 		return
 	}
 	switch g.page { // Building processing
 	case 0:
-		if g.cursor < 0 || len(g.buildings) < g.cursor-1 {
+		if g.cursor < 0 || len(g.gameState.buildings) < g.cursor-1 {
 			g.DebugMessage(fmt.Sprintf("Invalid building selection: %d", g.cursor-1))
 			return
 		}
-		building := &g.buildings[g.cursor-1]
+		building := &g.gameState.buildings[g.cursor-1]
 		cost := building.Cost()
-		if g.money >= cost {
-			g.UpdateMoney(-cost)
+		if g.gameState.money >= cost {
+			g.gameState.UpdateMoney(-cost)
 			building.count++
 			return
 		}
@@ -142,7 +121,7 @@ func (g *Game) handleDecision() {
 		return
 	case 1:
 		// Upgrade processing
-		upgrade := &g.upgrades[g.cursor-1]
+		upgrade := &g.gameState.upgrades[g.cursor-1]
 		if upgrade.isPurchased {
 			g.popup.Show("Upgrade already purchased!")
 			return
@@ -152,11 +131,11 @@ func (g *Game) handleDecision() {
 			return
 		}
 		cost := upgrade.cost
-		if g.money < cost {
+		if g.gameState.money < cost {
 			g.popup.Show("Not enough money for upgrade!")
 			return
 		}
-		g.UpdateMoney(-cost)
+		g.gameState.UpdateMoney(-cost)
 		upgrade.isPurchased = true
 		g.popup.Show("Upgrade purchased successfully!")
 		return
@@ -184,7 +163,7 @@ func (g *Game) drawDebug(screen *ebiten.Image) {
 }
 
 func (g *Game) drawMoney(screen *ebiten.Image) {
-	moneyText := fmt.Sprintf("Money: $%.2f (Total Generate Rate: $%.2f/s)", g.money, g.GetTotalGenerateRate())
+	moneyText := fmt.Sprintf("Money: $%.2f (Total Generate Rate: $%.2f/s)", g.gameState.money, g.GetTotalGenerateRate())
 	ebitenutil.DebugPrintAt(screen, moneyText, 10, 10)
 }
 
@@ -195,23 +174,23 @@ func (g *Game) drawPopup(screen *ebiten.Image) {
 func (g *Game) drawManualWork(screen *ebiten.Image) {
 	y := 50
 	if g.cursor == 0 {
-		ebitenutil.DebugPrintAt(screen, "-> "+g.manualWork.String(), 10, y)
+		ebitenutil.DebugPrintAt(screen, "-> "+g.gameState.manualWork.String(), 10, y)
 		return
 	}
-	ebitenutil.DebugPrintAt(screen, "   "+g.manualWork.String(), 10, y)
+	ebitenutil.DebugPrintAt(screen, "   "+g.gameState.manualWork.String(), 10, y)
 }
 
 func (g *Game) drawBuildings(screen *ebiten.Image) {
 	if g.page != 0 {
 		return
 	}
-	for i, building := range g.buildings {
+	for i, building := range g.gameState.buildings {
 		y := 70 + i*20
 		if g.cursor == i+1 {
-			ebitenutil.DebugPrintAt(screen, "-> "+building.String(g.upgrades), 10, y)
+			ebitenutil.DebugPrintAt(screen, "-> "+building.String(g.gameState.upgrades), 10, y)
 			continue
 		}
-		ebitenutil.DebugPrintAt(screen, "   "+building.String(g.upgrades), 10, y)
+		ebitenutil.DebugPrintAt(screen, "   "+building.String(g.gameState.upgrades), 10, y)
 	}
 }
 
@@ -219,7 +198,7 @@ func (g *Game) drawUpgrades(screen *ebiten.Image) {
 	if g.page != 1 {
 		return
 	}
-	for i, upgrade := range g.upgrades {
+	for i, upgrade := range g.gameState.upgrades {
 		y := 70 + i*20
 		if g.cursor == i+1 {
 			ebitenutil.DebugPrintAt(screen, "-> "+upgrade.String(g), 10, y)
@@ -246,14 +225,10 @@ func (g *Game) DebugPrint(screen *ebiten.Image) {
 // GetTotalGenerateRate calculates the total money generation rate from all unlocked buildings
 func (g *Game) GetTotalGenerateRate() float64 {
 	totalRate := 0.0
-	for _, building := range g.buildings {
+	for _, building := range g.gameState.buildings {
 		if building.IsUnlocked() {
-			totalRate += building.totalGenerateRate(g.upgrades)
+			totalRate += building.totalGenerateRate(g.gameState.upgrades)
 		}
 	}
 	return totalRate
-}
-
-func (g *Game) UpdateMoney(amount float64) {
-	g.money += amount
 }

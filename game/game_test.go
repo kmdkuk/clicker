@@ -1,8 +1,6 @@
 package game
 
 import (
-	"time"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -31,52 +29,20 @@ var _ = Describe("Game", func() {
 		game.inputHandler = mockInputHandler // Replace inputHandler with mock
 	})
 
-	Describe("UpdateMoney", func() {
-		It("should correctly add money", func() {
-			game.UpdateMoney(10.0)
-			Expect(game.money).To(Equal(10.0))
-		})
-
-		It("should correctly subtract money", func() {
-			game.UpdateMoney(10.0)
-			game.UpdateMoney(-5.0)
-			Expect(game.money).To(Equal(5.0))
-		})
-	})
-
-	Describe("updateBuildings", func() {
-		It("should generate income from unlocked buildings", func() {
-			now := time.Now()
-			game.buildings[0].count = 1                 // Unlock the first building
-			game.lastUpdate = now.Add(-1 * time.Second) // Simulate 1 second elapsed
-
-			game.updateBuildings(now)
-			Expect(game.money).To(Equal(game.buildings[0].baseGenerateRate))
-		})
-
-		It("should not generate income from locked buildings", func() {
-			now := time.Now()
-			game.lastUpdate = now.Add(-1 * time.Second) // Simulate 1 second elapsed
-
-			game.updateBuildings(now)
-			Expect(game.money).To(Equal(0.0))
-		})
-	})
-
 	Describe("handleDecision with page=0", func() {
 		It("should add money for manual work", func() {
 			game.cursor = 0 // Select manual work
 			game.handleDecision()
-			Expect(game.money).To(Equal(0.1))
+			Expect(game.gameState.money).To(Equal(0.1))
 		})
 
 		It("should purchase a building if enough money is available", func() {
-			game.cursor = 1        // Select the first building
-			game.UpdateMoney(10.0) // Add enough money to purchase
+			game.cursor = 1                  // Select the first building
+			game.gameState.UpdateMoney(10.0) // Add enough money to purchase
 			game.handleDecision()
 
-			Expect(game.money).To(BeNumerically("<", 10.0)) // Money should decrease
-			Expect(game.buildings[0].count).To(Equal(1))    // Building count should increase
+			Expect(game.gameState.money).To(BeNumerically("<", 10.0)) // Money should decrease
+			Expect(game.gameState.buildings[0].count).To(Equal(1))    // Building count should increase
 		})
 
 		It("should show a popup if not enough money is available", func() {
@@ -88,8 +54,8 @@ var _ = Describe("Game", func() {
 		})
 
 		It("should show a popup if not enough money is available when unlocked", func() {
-			game.cursor = 1             // Select the first building
-			game.buildings[0].count = 1 // Unlock the building
+			game.cursor = 1                       // Select the first building
+			game.gameState.buildings[0].count = 1 // Unlock the building
 
 			game.handleDecision()
 
@@ -99,7 +65,7 @@ var _ = Describe("Game", func() {
 
 		It("should correctly apply upgrades when performing manual work", func() {
 			// Setup: Enable an upgrade that doubles manual work value
-			game.upgrades = []Upgrade{
+			game.gameState.upgrades = []Upgrade{
 				{
 					name:               "Double Manual Work",
 					isTargetManualWork: true,
@@ -116,14 +82,14 @@ var _ = Describe("Game", func() {
 
 			// Expect the money to increase by the upgraded manual work value
 			expectedMoney := 0.1 * 2
-			Expect(game.money).To(Equal(expectedMoney))
+			Expect(game.gameState.money).To(Equal(expectedMoney))
 		})
 	})
 
 	Describe("handleDecision with page=1 and cursor > 0", func() {
 		BeforeEach(func() {
 			game.page = 1 // Set to the second page
-			game.upgrades = []Upgrade{
+			game.gameState.upgrades = []Upgrade{
 				{
 					name:               "Test Upgrade 1",
 					isPurchased:        false,
@@ -154,36 +120,36 @@ var _ = Describe("Game", func() {
 		})
 
 		It("should purchase an upgrade if enough money is available", func() {
-			game.cursor = 1        // Select the first upgrade
-			game.UpdateMoney(10.0) // Add enough money to purchase the upgrade
+			game.cursor = 1                  // Select the first upgrade
+			game.gameState.UpdateMoney(10.0) // Add enough money to purchase the upgrade
 
 			game.handleDecision()
 
-			Expect(game.money).To(BeNumerically("<", 10.0))                         // Money should decrease
-			Expect(game.upgrades[0].isPurchased).To(BeTrue())                       // Upgrade should be marked as purchased
+			Expect(game.gameState.money).To(BeNumerically("<", 10.0))               // Money should decrease
+			Expect(game.gameState.upgrades[0].isPurchased).To(BeTrue())             // Upgrade should be marked as purchased
 			Expect(game.popup.Active).To(BeTrue())                                  // Popup should be active
 			Expect(game.popup.Message).To(Equal("Upgrade purchased successfully!")) // Correct popup message
 		})
 
 		It("should show a popup if not enough money is available for the upgrade", func() {
-			game.cursor = 1       // Select the first upgrade
-			game.UpdateMoney(5.0) // Not enough money to purchase the upgrade
+			game.cursor = 1                 // Select the first upgrade
+			game.gameState.UpdateMoney(5.0) // Not enough money to purchase the upgrade
 
 			game.handleDecision()
 
-			Expect(game.upgrades[0].isPurchased).To(BeFalse())                    // Upgrade should not be purchased
+			Expect(game.gameState.upgrades[0].isPurchased).To(BeFalse())          // Upgrade should not be purchased
 			Expect(game.popup.Active).To(BeTrue())                                // Popup should be active
 			Expect(game.popup.Message).To(Equal("Not enough money for upgrade!")) // Correct popup message
 		})
 
 		It("should not allow purchasing an already purchased upgrade", func() {
-			game.cursor = 1                     // Select the first upgrade
-			game.UpdateMoney(10.0)              // Add enough money to purchase the upgrade
-			game.upgrades[0].isPurchased = true // Mark the upgrade as already purchased
+			game.cursor = 1                               // Select the first upgrade
+			game.gameState.UpdateMoney(10.0)              // Add enough money to purchase the upgrade
+			game.gameState.upgrades[0].isPurchased = true // Mark the upgrade as already purchased
 
 			game.handleDecision()
 
-			Expect(game.money).To(Equal(10.0))                                 // Money should not decrease
+			Expect(game.gameState.money).To(Equal(10.0))                       // Money should not decrease
 			Expect(game.popup.Active).To(BeTrue())                             // Popup should be active
 			Expect(game.popup.Message).To(Equal("Upgrade already purchased!")) // Correct popup message
 		})
@@ -191,7 +157,7 @@ var _ = Describe("Game", func() {
 		It("should show a popup if the upgrade is not yet available", func() {
 			game.page = 1   // Set to the second page
 			game.cursor = 1 // Select the first upgrade
-			game.upgrades = []Upgrade{
+			game.gameState.upgrades = []Upgrade{
 				{
 					name:               "Test Upgrade 1",
 					isTargetManualWork: false,
@@ -207,29 +173,15 @@ var _ = Describe("Game", func() {
 				},
 			}
 
-			game.UpdateMoney(10.0) // Add enough money to purchase the upgrade
+			game.gameState.UpdateMoney(10.0) // Add enough money to purchase the upgrade
 			game.handleDecision()
 
 			// Assert that the upgrade was not purchased
-			Expect(game.upgrades[0].isPurchased).To(BeFalse())
+			Expect(game.gameState.upgrades[0].isPurchased).To(BeFalse())
 
 			// Assert that the popup is active with the correct message
 			Expect(game.popup.Active).To(BeTrue())
 			Expect(game.popup.Message).To(Equal("Upgrade not available yet!"))
-		})
-	})
-
-	Describe("GetTotalGenerateRate", func() {
-		It("should calculate the total generate rate from all unlocked buildings", func() {
-			game.buildings[0].count = 1
-			game.buildings[1].count = 2
-
-			expectedRate := game.buildings[0].baseGenerateRate*1 + game.buildings[1].baseGenerateRate*2
-			Expect(game.GetTotalGenerateRate()).To(BeNumerically("~", expectedRate, 0.00001))
-		})
-
-		It("should return 0 if no buildings are unlocked", func() {
-			Expect(game.GetTotalGenerateRate()).To(Equal(0.0))
 		})
 	})
 
@@ -255,11 +207,11 @@ var _ = Describe("Game", func() {
 			mockInputHandler.pressedKey = KeyTypeUp
 
 			game.handleInput()
-			Expect(game.cursor).To(Equal(len(game.buildings))) // Cursor should wrap to the last item
+			Expect(game.cursor).To(Equal(len(game.gameState.buildings))) // Cursor should wrap to the last item
 		})
 
 		It("should wrap the cursor to the top when moving down from the bottom", func() {
-			game.cursor = len(game.buildings) // Start at the last item
+			game.cursor = len(game.gameState.buildings) // Start at the last item
 			mockInputHandler.pressedKey = KeyTypeDown
 
 			game.handleInput()
@@ -271,7 +223,7 @@ var _ = Describe("Game", func() {
 			game.cursor = 0 // Select manual work
 
 			game.handleInput()
-			Expect(game.money).To(Equal(game.manualWork.Value(game.upgrades))) // Money should increase
+			Expect(game.gameState.money).To(Equal(game.gameState.manualWork.Value(game.gameState.upgrades))) // Money should increase
 		})
 
 		It("should move to the next page when KeyTypeRight is pressed", func() {
