@@ -52,11 +52,11 @@ var _ = Describe("Game", func() {
 
 	Describe("updateBuildings", func() {
 		It("should generate income from unlocked buildings", func() {
-			game.buildings[0].Count = 1                        // Unlock the first building
+			game.buildings[0].count = 1                        // Unlock the first building
 			game.lastUpdate = time.Now().Add(-1 * time.Second) // Simulate 1 second elapsed
 
 			game.updateBuildings()
-			Expect(game.money).To(Equal(game.buildings[0].GenerateRate))
+			Expect(game.money).To(Equal(game.buildings[0].baseGenerateRate))
 		})
 
 		It("should not generate income from locked buildings", func() {
@@ -80,7 +80,7 @@ var _ = Describe("Game", func() {
 			game.handleDecision()
 
 			Expect(game.money).To(BeNumerically("<", 10.0)) // Money should decrease
-			Expect(game.buildings[0].Count).To(Equal(1))    // Building count should increase
+			Expect(game.buildings[0].count).To(Equal(1))    // Building count should increase
 		})
 
 		It("should show a popup if not enough money is available", func() {
@@ -94,10 +94,10 @@ var _ = Describe("Game", func() {
 
 	Describe("GetTotalGenerateRate", func() {
 		It("should calculate the total generate rate from all unlocked buildings", func() {
-			game.buildings[0].Count = 1
-			game.buildings[1].Count = 2
+			game.buildings[0].count = 1
+			game.buildings[1].count = 2
 
-			expectedRate := game.buildings[0].GenerateRate*1 + game.buildings[1].GenerateRate*2
+			expectedRate := game.buildings[0].baseGenerateRate*1 + game.buildings[1].baseGenerateRate*2
 			Expect(game.GetTotalGenerateRate()).To(Equal(expectedRate))
 		})
 

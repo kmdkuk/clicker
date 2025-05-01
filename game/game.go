@@ -29,9 +29,13 @@ func NewGame(config *Config) *Game {
 		cursor:     0, // Initial cursor position
 		manualWork: ManualWork{Name: "Manual Work: $0.1", Value: 0.1},
 		buildings: []Building{
-			{Name: "Building 1", BaseCost: 1.0, GenerateRate: 0.01, Count: 0},
-			{Name: "Building 2", BaseCost: 10.0, GenerateRate: 0.05, Count: 0},
-			{Name: "Building 3", BaseCost: 100.0, GenerateRate: 0.10, Count: 0},
+			{name: "Building 1", baseCost: 1.0, baseGenerateRate: 0.01, count: 0},
+			{name: "Building 2", baseCost: 10.0, baseGenerateRate: 0.1, count: 0},
+			{name: "Building 3", baseCost: 100.0, baseGenerateRate: 1, count: 0},
+			{name: "Building 4", baseCost: 1000.0, baseGenerateRate: 10, count: 0},
+			{name: "Building 5", baseCost: 10000.0, baseGenerateRate: 100, count: 0},
+			{name: "Building 6", baseCost: 100000.0, baseGenerateRate: 1000, count: 0},
+			{name: "Building 7", baseCost: 1000000.0, baseGenerateRate: 10000, count: 0},
 		},
 		inputHandler: &DefaultInputHandler{}, // Use the default implementation
 		lastUpdate:   time.Now(),
@@ -89,7 +93,7 @@ func (g *Game) handleDecision() {
 		cost := building.Cost()
 		if g.money >= cost {
 			g.UpdateMoney(-cost)
-			building.Count++
+			building.count++
 		} else {
 			if building.IsUnlocked() {
 				g.popup.Show("Not enough money to purchase!")
@@ -168,7 +172,7 @@ func (g *Game) GetTotalGenerateRate() float64 {
 	totalRate := 0.0
 	for _, building := range g.buildings {
 		if building.IsUnlocked() {
-			totalRate += building.GenerateRate * float64(building.Count)
+			totalRate += building.baseGenerateRate * float64(building.count)
 		}
 	}
 	return totalRate
