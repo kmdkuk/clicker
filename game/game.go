@@ -87,6 +87,9 @@ func NewGame(config *config.Config) *Game {
 }
 
 func (g *Game) Update() error {
+	g.inputHandler.Update() // Update input handler
+	g.updateBuildings()
+
 	// Handle popup
 	if g.popup.Active {
 		g.handlePopup()
@@ -94,7 +97,6 @@ func (g *Game) Update() error {
 	}
 
 	// Update game state
-	g.updateBuildings()
 	g.handleInput()
 
 	return nil
@@ -125,7 +127,7 @@ func (g *Game) handleInput() {
 
 	switch keyType {
 	case KeyTypeUp:
-		g.cursor = (g.cursor - 1) % totalItems
+		g.cursor = (g.cursor - 1 + totalItems) % totalItems
 	case KeyTypeDown:
 		g.cursor = (g.cursor + 1) % totalItems
 	case KeyTypeDecision:
