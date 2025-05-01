@@ -28,11 +28,13 @@ type Game struct {
 func NewGame(config *config.Config) *Game {
 	gameState := state.NewGameState() // Initialize game state
 	game := &Game{
-		config:    config,
-		cursor:    0, // Initial cursor position
-		page:      0, // Initial page position,
-		gameState: gameState,
-		decider:   input.NewDefaultDecider(gameState),
+		config:       config,
+		cursor:       0, // Initial cursor position
+		page:         0, // Initial page position,
+		gameState:    gameState,
+		decider:      input.NewDefaultDecider(gameState),
+		inputHandler: input.NewInputHandler(),
+		popup:        ui.Popup{Active: false, Message: ""},
 	}
 	game.validateCursorPosition()
 	return game

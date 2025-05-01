@@ -23,6 +23,12 @@ type InputHandler interface {
 	GetPressedKey() KeyType
 }
 
+func NewInputHandler() InputHandler {
+	return &DefaultInputHandler{
+		pressedKey: ebiten.KeyMeta, // Initialize with a default key
+	}
+}
+
 // DefaultInputHandler is the default implementation of InputHandler
 type DefaultInputHandler struct {
 	pressedKey ebiten.Key // Stores the pressed key
