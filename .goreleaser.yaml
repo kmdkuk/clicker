@@ -15,13 +15,9 @@ builds:
     main: .
     binary: clicker
     goos:
-      - linux
-      - darwin
-      - windows
+      - js
     goarch:
-      - "386"
-      - amd64
-      - arm64
+      - wasm
     ldflags:
       - -s
       - -w
