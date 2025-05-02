@@ -10,10 +10,11 @@
   "postUpdateOptions": [
     "gomodTidy"
   ],
-  "regexManagers": [
+  "customManagers": [
     {
-      "datasourceTemplate": "gihub-tags",
+      "customType": "regex",
       "depNameTemplate": "golangci/golangci-lint",
+      "datasourceTemplate": "github-releases",
       "fileMatch": [
         "^Makefile$"
       ],

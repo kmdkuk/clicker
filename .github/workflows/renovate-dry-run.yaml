@@ -24,4 +24,4 @@ jobs:
       - name: Run Renovate Dry Run
         run: |
           renovate-config-validator renovate.json
-          renovate --dry-run --config-file renovate.json
+          RENOVATE_CONFIG_FILE=renovate.json renovate --dry-run --token ${{ secrets.GITHUB_TOKEN }} ${{ github.repository }}
