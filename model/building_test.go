@@ -11,11 +11,12 @@ import (
 // GameStateMock は GameStateReader および GameState インターフェースのモック実装です
 type GameStateMock struct {
 	Upgrades []Upgrade
+	Money    float64
 }
 
 // GetMoney は現在の所持金を返します
 func (g GameStateMock) GetMoney() float64 {
-	return 0.0
+	return g.Money
 }
 
 // GetTotalGenerateRate は毎秒の総収益を返します
