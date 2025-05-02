@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/kmdkuk/clicker/config"
 	"github.com/kmdkuk/clicker/game"
@@ -17,7 +18,7 @@ func main() {
 	g := game.NewGame(cfg)
 	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("Clicker")
-
+	g.StartAutoSave((30 * time.Second))
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}

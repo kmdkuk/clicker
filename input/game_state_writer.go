@@ -1,7 +1,7 @@
 package input
 
 type GameStateWriter interface {
-	ManualWork()
+	ManualWorkAction()
 	PurchaseBuildingAction(cursor int) (bool, string)
 	PurchaseUpgradeAction(cursor int) (bool, string)
 }
