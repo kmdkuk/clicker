@@ -9,39 +9,53 @@ Clicker is a simple incremental game where players can earn money through manual
 ### Key Features:
 - **Manual Work**: Earn money manually by selecting the "Manual Work" option.
 - **Buildings**: Purchase and upgrade buildings to generate passive income.
+- **Upgrades**: Unlock and apply upgrades to enhance manual work or building efficiency.
 - **Popup Messages**: Informative messages guide the player when actions cannot be performed.
 - **Debug Mode**: Enable debug mode to display internal game state for testing and development.
 
 ## How to Play
 
 1. **Navigate the menu**:
-   - Use the arrow keys (`↑`, `↓`) or `W`/`S` to move the cursor.
-2. **Perform actions**:
+   - Use the arrow keys (`↑`, `↓`) or `W`/`S`/`J`/`K` to move the cursor.
+2. **Switch pages**:
+   - Use the left/right arrow keys or `A`/`D`/`H`/`L` to toggle between pages (buildings and upgrades).
+3. **Perform actions**:
    - Press `Enter` or `Space` to select an option.
-3. **Earn money**:
+4. **Earn money**:
    - Select "Manual Work" to earn money manually.
-4. **Purchase buildings**:
+5. **Purchase buildings**:
    - Use earned money to purchase buildings and generate passive income.
-5. **Close popups**:
+6. **Apply upgrades**:
+   - Unlock upgrades to enhance your gameplay.
+7. **Close popups**:
    - Press `Enter` to close popup messages.
 
-For play the game online, visit: [https://kmdk.uk/clicker/](https://kmdk.uk/clicker/)
+For playing the game online, visit: [https://kmdk.uk/clicker/](https://kmdk.uk/clicker/)
 
 ## Project Structure
 
 ```
-├── main.go          # Entry point of the application
-├── game             # Contains game logic and input handling
-│   ├── game.go      # Main game logic
-│   ├── input.go     # User input handling
-│   ├── building.go  # Building-related logic
-│   ├── popup.go     # Popup message handling
-│   ├── config.go    # Game configuration
-│   └── draw.go      # Rendering logic
-├── assets           # Contains game assets
-│   └── README.md    # Information about game assets
-├── go.mod           # Go module configuration
-└── README.md        # Project documentation
+├── cmd/clicker       # Entry point of the application
+│   └── main.go       # Main function to start the game
+├── game              # Contains game core logic
+│   └── game.go       # Main game logic
+├── model             # Core data models
+│   ├── building.go   # Building data model
+│   ├── upgrade.go    # Upgrade data model
+│   └── manual_work.go # Manual work data model
+├── state             # Game state management
+│   └── game_state.go # Handles game state updates
+├── input             # Input handling logic
+│   ├── handler.go    # Input handler implementation
+│   └── decider.go    # Decision-making logic
+├── ui                # User interface components
+│   └── popup.go      # Popup message handling
+├── config            # Configuration
+│   └── config.go     # Game configuration
+├── assets            # Contains game assets
+├── go.mod            # Go module configuration
+├── .goreleaser.yaml  # Release configuration for GoReleaser
+└── README.md         # Project documentation
 ```
 
 ## Prerequisites
@@ -72,7 +86,7 @@ Before running the game, ensure the following dependencies are installed on your
 
 2. **Run the game**:
    ```bash
-   go run main.go
+   go run ./cmd/clicker/main.go
    ```
 
 ## Assets
@@ -81,13 +95,10 @@ For information regarding the images and audio files used in the game, please re
 
 ## Debug Mode
 
-To enable debug mode, modify the `EnableDebug` field in the `Config` struct:
-```go
-config := &Config{
-    EnableDebug: true, // Enable debug mode
-}
+To enable debug mode, use the `--debug` or `-d` flag:
+```bash
+go run ./cmd/clicker/main.go --debug
 ```
-When enabled, debug information such as the player's money and cursor position will be displayed on the screen.
 
 ## Troubleshooting
 
