@@ -10,15 +10,16 @@
   "postUpdateOptions": [
     "gomodTidy"
   ],
-  "regexManagers": [
+  "customManagers": [
     {
-      "datasourceTemplate": "gihub-tags",
+      "customType": "regex",
       "depNameTemplate": "golangci/golangci-lint",
+      "datasourceTemplate": "github-releases",
       "fileMatch": [
         "^Makefile$"
       ],
       "matchStrings": [
-        "GOLANGCI_LINT_VERSION ?= (?<currentValue>.*?)# renovate: golangci\\/golangci-lint"
+        "GOLANGCI_LINT_VERSION ?= (?<currentValue>.*?) # renovate: golangci\\/golangci-lint"
       ]
     }
   ]
