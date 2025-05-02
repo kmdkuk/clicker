@@ -55,7 +55,7 @@ var _ = Describe("StorageDriverDefault", func() {
 			// Load the game state
 			loadedByte, err := storageDriver.LoadData()
 			Expect(err).To(HaveOccurred())
-			Expect(loadedByte).To(Equal([]byte{}))
+			Expect(loadedByte).To(Equal([]byte{})) // Ensure LoadData returns an empty slice for missing files
 		})
 
 		It("should overwrite the existing save file when saving new data", func() {
