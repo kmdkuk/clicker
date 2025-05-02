@@ -62,7 +62,7 @@ var _ = Describe("Popup", func() {
 
 		It("should not process input when popup is inactive", func() {
 			popup.Close()
-			// ポップアップが非アクティブの場合はキー入力を処理しない
+			// Don't process key input when popup is inactive
 			popup.HandleInput(input.KeyTypeDecision)
 			Expect(popup.Active).To(BeFalse())
 		})

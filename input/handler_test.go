@@ -84,13 +84,13 @@ var _ = Describe("InputHandler", func() {
 			}
 		})
 
-		It("should return the correct key type for Desicison", func() {
-			desicions := []ebiten.Key{
+		It("should return the correct key type for Decision", func() {
+			decisions := []ebiten.Key{
 				ebiten.KeyEnter,
 				ebiten.KeySpace,
 			}
-			for _, desicion := range desicions {
-				handler.pressedKey = desicion
+			for _, decision := range decisions {
+				handler.pressedKey = decision
 				keyType := handler.GetPressedKey()
 				Expect(keyType).To(Equal(KeyTypeDecision))
 			}

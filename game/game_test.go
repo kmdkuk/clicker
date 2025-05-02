@@ -196,9 +196,9 @@ func (m *mockRenderer) GetCurrentPage() int {
 	return 0
 }
 
-// デバッグ関連のメソッド
+// Debug related methods
 func (m *mockRenderer) DebugMessage(message string) {
-	// デバッグメッセージを設定する処理
+	// Process to set debug message
 }
 
 func (m *mockRenderer) GetDebugMessage() string {
@@ -206,7 +206,7 @@ func (m *mockRenderer) GetDebugMessage() string {
 }
 
 func (m *mockRenderer) DebugPrint(screen *ebiten.Image) {
-	// デバッグ情報を画面に描画する処理
+	// Process to draw debug information on screen
 }
 
 // Game tests

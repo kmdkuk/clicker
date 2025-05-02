@@ -7,8 +7,8 @@ import (
 )
 
 type Popup struct {
-	Message string // Message to display
-	Active  bool   // Whether the popup is active
+	Message string // The message displayed in the popup
+	Active  bool   // Indicates whether the popup is currently active
 }
 
 func NewPopup() *Popup {

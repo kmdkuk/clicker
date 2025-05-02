@@ -30,14 +30,14 @@ type DefaultRenderer struct {
 	debugMessage string
 	decider      input.Decider
 
-	// コンポーネント
+	// Components for rendering different parts of the UI
 	display    *components.Display
 	navigation *components.Navigation
 	popup      *components.Popup
 	manualWork *components.List
 	buildings  *components.List
 	upgrades   *components.List
-	// 必要に応じて他のコンポーネントを追加
+	// Add other components as needed
 }
 
 func NewRenderer(config *config.Config, gameState model.GameStateReader, decider input.Decider) Renderer {
@@ -58,17 +58,17 @@ func NewRenderer(config *config.Config, gameState model.GameStateReader, decider
 }
 
 func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0, 0, 0, 255}) // 背景を黒で塗りつぶし
+	screen.Fill(color.RGBA{0, 0, 0, 255}) // Fill background with black
 
-	// デバッグ情報描画
+	// Draw debug information
 	if r.config.EnableDebug {
 		ebitenutil.DebugPrint(screen, r.debugMessage)
 	}
 
-	// ゲーム情報描画
+	// Draw game information
 	r.display.DrawMoney(screen)
 
-	// ポップアップがアクティブならそれだけ描画して終了
+	// If popup is active, only draw it and return
 	if r.popup.IsActive() {
 		r.popup.Draw(screen)
 		return
@@ -82,16 +82,16 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 }
 
 func (r *DefaultRenderer) HandleInput(keyType input.KeyType) {
-	// ポップアップ処理が優先
+	// Popup handling takes priority
 	if r.popup.IsActive() {
 		r.popup.HandleInput(keyType)
 		return
 	}
 
-	// 通常の入力処理
+	// Normal input handling
 	r.navigation.HandleNavigation(keyType)
 
-	// 決定ボタン処理
+	// Decision button handling
 	if keyType == input.KeyTypeDecision {
 		r.handleDecision()
 	}
@@ -108,7 +108,7 @@ func (r *DefaultRenderer) handleDecision() {
 	}
 }
 
-// ポップアップ関連メソッド
+// Popup related methods
 func (r *DefaultRenderer) ShowPopup(message string) {
 	r.popup.Show(message)
 }
@@ -121,7 +121,7 @@ func (r *DefaultRenderer) GetPopupMessage() string {
 	return r.popup.GetMessage()
 }
 
-// 他のインターフェース実装メソッド
+// Other interface implementation methods
 func (r *DefaultRenderer) GetCursor() int {
 	return r.navigation.GetCursor()
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/kmdkuk/clicker/model"
 )
 
-// NavigationComponent はカーソル位置とページ管理を担当
+// NavigationComponent handles cursor position and page management
 type Navigation struct {
 	gameState model.GameStateReader
 	cursor    int
@@ -18,7 +18,7 @@ func NewNavigation(gameState model.GameStateReader) *Navigation {
 		gameState: gameState,
 		cursor:    0,
 		page:      0,
-		maxPages:  2, // デフォルト値、設定可能にすることも
+		maxPages:  2, // Total number of pages (currently fixed at 2)
 	}
 }
 

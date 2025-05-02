@@ -8,79 +8,64 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// GameStateMock は GameStateReader および GameState インターフェースのモック実装です
 type GameStateMock struct {
 	Upgrades []Upgrade
 	Money    float64
 }
 
-// GetMoney は現在の所持金を返します
 func (g GameStateMock) GetMoney() float64 {
 	return g.Money
 }
 
-// GetTotalGenerateRate は毎秒の総収益を返します
 func (g GameStateMock) GetTotalGenerateRate() float64 {
 	return 0.0
 }
 
-// GetManualWork は手動収益オブジェクトを返します
 func (g GameStateMock) GetManualWork() *ManualWork {
 	return nil
 }
 
-// GetBuildings は建物のスライスを返します
 func (g GameStateMock) GetBuildings() []Building {
 	return nil
 }
 
-// GetUpgrades はアップグレードのスライスを返します
 func (g GameStateMock) GetUpgrades() []Upgrade {
 	return g.Upgrades
 }
 
-// UpdateMoney は所持金を更新します
 func (g *GameStateMock) UpdateMoney(amount float64) {
 }
 
-// SetManualWorkCount は手動収益のカウントを設定します
 func (g *GameStateMock) SetManualWorkCount(count int) {
 }
 
-// ManualWorkAction は手動収益アクションを実行します
 func (g *GameStateMock) ManualWorkAction() (float64, string) {
 	return 0.0, ""
 }
 
-// PurchaseBuildingAction は建物購入アクションを実行します
 func (g *GameStateMock) PurchaseBuildingAction(buildingID int) (bool, string) {
 	return false, ""
 }
 
-// PurchaseUpgradeAction はアップグレード購入アクションを実行します
 func (g *GameStateMock) PurchaseUpgradeAction(upgradeID int) (bool, string) {
 	return false, ""
 }
 
-// SetBuildingCount は特定の建物のカウントを設定します
 func (g *GameStateMock) SetBuildingCount(buildingID, count int) {
 }
 
-// SetUpgradesIsPurchased はアップグレードの購入状態を設定します
 func (g *GameStateMock) SetUpgradesIsPurchased(upgradeID int, isPurchased bool) {
 }
 
-// UpdateBuildings は建物による収益を更新します
 func (g *GameStateMock) UpdateBuildings(currentTime time.Time) {
-	// テストでは時間経過をシミュレートしたい場合に使用します
 }
 
-// モック初期化用のヘルパー関数
+// GameStateMock is a mock implementation of GameStateReader and GameState interfaces
 func NewGameStateMock() *GameStateMock {
 	return &GameStateMock{
 		Upgrades: []Upgrade{
 			{
-				Name:               "アップグレード1",
+				Name:               "Upgrade 1",
 				Cost:               50.0,
 				TargetBuilding:     1,
 				IsTargetManualWork: false,

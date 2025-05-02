@@ -125,73 +125,72 @@ var _ = Describe("Renderer", func() {
 
 	Describe("Popup input handling", func() {
 		BeforeEach(func() {
-			// 各テスト前にポップアップを表示しておく
+			// Display popup before each test
 			renderer.ShowPopup("Test message")
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 		})
 
 		It("should close popup when HandlePopupInput is called with decision key", func() {
-			// 決定キーでポップアップが閉じることを確認
+			// Verify popup closes with decision key
 			renderer.HandleInput(input.KeyTypeDecision)
 			Expect(renderer.IsPopupActive()).To(BeFalse())
 		})
 
 		It("should not close popup when HandlePopupInput is called with non-decision keys", func() {
-			// 決定キー以外ではポップアップが閉じないことを確認
+			// Verify popup doesn't close with non-decision keys
 			renderer.HandleInput(input.KeyTypeUp)
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 
 			renderer.HandleInput(input.KeyTypeDown)
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 		})
+
 	})
 
 	Describe("Input handling with popup", func() {
 		It("should handle popup closure through main input method", func() {
-			// ポップアップを表示
+			// Display popup
 			renderer.ShowPopup("Test message")
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 
-			// HandleInputを通して決定キーを送信するとポップアップが閉じる
+			// HandleInput with decision key should close the popup
 			renderer.HandleInput(input.KeyTypeDecision)
 			Expect(renderer.IsPopupActive()).To(BeFalse())
 		})
-
 		It("should skip normal navigation when popup is active", func() {
-			// ポップアップを表示
-
+			// Display popup
 			renderer.ShowPopup("Test message")
 
-			// 初期状態を保存
+			// Save initial state
 			initialPage := renderer.GetPage()
 			initialCursor := renderer.GetCursor()
 
-			// ナビゲーションキーを送信
-			renderer.HandleInput(input.KeyTypeRight) // ページ変更試行
-			renderer.HandleInput(input.KeyTypeDown)  // カーソル移動試行
+			// Send navigation keys
+			renderer.HandleInput(input.KeyTypeRight) // Try to change page
+			renderer.HandleInput(input.KeyTypeDown)  // Try to move cursor
 
-			// ポップアップ表示中はナビゲーションが効かないことを確認
+			// Verify navigation doesn't work when popup is active
 			Expect(renderer.GetPage()).To(Equal(initialPage))
 			Expect(renderer.GetCursor()).To(Equal(initialCursor))
 		})
 
 		It("should resume normal navigation after popup is closed", func() {
-			// ポップアップを表示して閉じる
+			// Display popup and then close it
 			renderer.ShowPopup("Test message")
 			renderer.HandleInput(input.KeyTypeDecision)
 
-			// 初期状態を保存
+			// Save initial state
 			initialCursor := renderer.GetCursor()
 
-			// カーソル移動が機能することを確認
+			// Verify cursor movement works
 			renderer.HandleInput(input.KeyTypeDown)
 			Expect(renderer.GetCursor()).NotTo(Equal(initialCursor))
 		})
 	})
 
 	Describe("Drawing functionality", func() {
-		It("should execute drawing process without exceptions", func() {
-			// Verify that drawing method doesn't throw any exceptions
+		It("should execute the drawing process without panicking", func() {
+			// Verify that the drawing method executes without any runtime errors
 			Expect(func() {
 				renderer.Draw(mockScreen)
 			}).NotTo(Panic())

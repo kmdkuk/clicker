@@ -1,8 +1,8 @@
 package model
 
 type ManualWork struct {
-	Name  string  `json:"name"`  // Display name
-	Value float64 `json:"value"` // Money earned manually
+	Name  string  `json:"name"`  // The name displayed for manual work
+	Value float64 `json:"value"` // The amount of money earned per manual action
 	Count int     `json:"count"`
 }
 

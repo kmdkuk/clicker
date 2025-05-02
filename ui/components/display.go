@@ -8,7 +8,7 @@ import (
 	"github.com/kmdkuk/clicker/model"
 )
 
-// DisplayComponent は基本的なゲーム情報を表示する
+// DisplayComponent shows basic game information
 type Display struct {
 	gameState model.GameStateReader
 }
