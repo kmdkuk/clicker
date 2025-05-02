@@ -8,7 +8,7 @@ type DefaultDecider struct {
 	gameState GameStateWriter
 }
 
-func NewDefaultDecider(gameState GameStateWriter) Decider {
+func NewDecider(gameState GameStateWriter) Decider {
 	return &DefaultDecider{
 		gameState: gameState,
 	}

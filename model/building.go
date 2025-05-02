@@ -6,7 +6,7 @@ import (
 )
 
 type Building struct {
-	ID               int     // Unique identifier
+	ID               int     // Unique identifier for the building
 	Name             string  `json:"name"`
 	BaseCost         float64 `json:"base_cost"`
 	BaseGenerateRate float64 `json:"base_generate_rate"`
@@ -26,14 +26,14 @@ func (b *Building) IsUnlocked() bool {
 	return b.Count > 0
 }
 
-func (b *Building) String(upgrades []Upgrade) string {
+func (b *Building) String(gameState GameStateReader) string {
 	if b.IsUnlocked() {
 		return fmt.Sprintf(
 			"%s (Next Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)",
 			b.Name,
 			b.Cost(),
 			b.Count,
-			b.TotalGenerateRate(upgrades),
+			b.TotalGenerateRate(gameState.GetUpgrades()),
 		)
 	}
 	return fmt.Sprintf(
@@ -45,11 +45,11 @@ func (b *Building) String(upgrades []Upgrade) string {
 	)
 }
 
-// TotalGenerateRate メソッドでの丸め処理
+// TotalGenerateRate method for calculating rounded values
 func (b *Building) TotalGenerateRate(upgrades []Upgrade) float64 {
-	// 計算ロジック
+	// Calculation logic
 	rate := b.BaseGenerateRate * float64(b.Count)
-	// 必要なアップグレード処理
+	// Apply necessary upgrades
 	for _, upgrade := range upgrades {
 		if !upgrade.IsTargetManualWork && b.ID == upgrade.TargetBuilding && upgrade.IsPurchased {
 			rate = upgrade.Effect(rate)

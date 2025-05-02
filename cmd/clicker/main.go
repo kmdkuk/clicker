@@ -6,17 +6,33 @@ import (
 
 	"github.com/kmdkuk/clicker/config"
 	"github.com/kmdkuk/clicker/game"
-	"golang.org/x/net/context"
+	"github.com/kmdkuk/clicker/input"
+	"github.com/kmdkuk/clicker/state"
+	"github.com/kmdkuk/clicker/ui"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	flag "github.com/spf13/pflag"
+	"golang.org/x/net/context"
 )
 
 func main() {
 	cfg := config.NewConfig()
 	flag.BoolVarP(&cfg.EnableDebug, "debug", "d", false, "Enable debug mode")
 	flag.Parse()
-	g := game.NewGame(cfg)
+	gameState := state.NewGameState()
+	storage := state.NewDefaultStorage(state.NewStorageDriver(config.DefaultSaveKey))
+	if state, err := storage.LoadGameState(); err == nil {
+		gameState = state
+	}
+	inputHandler := input.NewHandler()
+	renderer := ui.NewRenderer(cfg, gameState, input.NewDecider(gameState))
+	g := game.NewGame(
+		cfg,
+		gameState,
+		storage,
+		renderer,
+		inputHandler,
+	)
 	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("Clicker")
 

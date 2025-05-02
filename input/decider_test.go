@@ -86,7 +86,7 @@ var _ = Describe("Decider", func() {
 			purchaseBuildingActionCalled: false,
 			purchaseUpgradeActionCalled:  false,
 		}
-		decider = NewDefaultDecider(gameState)
+		decider = NewDecider(gameState)
 	})
 
 	Context("Decide", func() {
