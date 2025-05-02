@@ -1,9 +1,9 @@
 package model
 
 type ManualWork struct {
-	Name  string  // Display name
-	Value float64 // Money earned manually
-	Count int
+	Name  string  `json:"name"`  // Display name
+	Value float64 `json:"value"` // Money earned manually
+	Count int     `json:"count"`
 }
 
 func (m *ManualWork) String() string {

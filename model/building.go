@@ -7,10 +7,10 @@ import (
 
 type Building struct {
 	ID               int     // Unique identifier
-	Name             string  // Display name
-	BaseCost         float64 // Base cost to unlock
-	BaseGenerateRate float64 // Money generated per second
-	Count            int     // Number of purchases
+	Name             string  `json:"name"`
+	BaseCost         float64 `json:"base_cost"`
+	BaseGenerateRate float64 `json:"base_generate_rate"`
+	Count            int     `json:"count"`
 }
 
 // Cost method: Calculates the cost based on the current number of purchases

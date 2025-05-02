@@ -42,7 +42,7 @@ func (m *MockGameState) GetUpgrades() []model.Upgrade {
 func (m *MockGameState) SetUpgrades(upgrades []model.Upgrade) {
 	m.upgrades = upgrades
 }
-func (m *MockGameState) ManualWork() {
+func (m *MockGameState) ManualWorkAction() {
 	m.manualWorkCalled = true
 	m.UpdateMoney(m.manualWork.Work(m.upgrades))
 }

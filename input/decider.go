@@ -17,7 +17,7 @@ func NewDefaultDecider(gameState GameStateWriter) Decider {
 func (d *DefaultDecider) Decide(page, cursor int) (bool, string) {
 	// マニュアルワークの選択
 	if cursor == 0 {
-		d.gameState.ManualWork()
+		d.gameState.ManualWorkAction()
 		return true, ""
 	}
 

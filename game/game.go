@@ -1,8 +1,10 @@
 package game
 
 import (
+	"context"
 	"fmt"
 	"image/color"
+	"log"
 	"time"
 
 	"github.com/kmdkuk/clicker/config"
@@ -19,25 +21,54 @@ type Game struct {
 	cursor       int             // Cursor position
 	page         int             // Page position
 	gameState    state.GameState // Game state
-	decider      input.Decider   // Decision maker
-	inputHandler input.Handler   // Handler to manage input processing
-	popup        ui.Popup        // Popup message
-	debugMessage string          // Debug message
+	storage      state.Storage
+	decider      input.Decider // Decision maker
+	inputHandler input.Handler // Handler to manage input processing
+	popup        ui.Popup      // Popup message
+	debugMessage string        // Debug message
 }
 
 func NewGame(config *config.Config) *Game {
-	gameState := state.NewGameState() // Initialize game state
+	storage := state.NewDefaultStorage(state.NewStorageDriver(config.SaveKey))
+
+	gameState, err := storage.LoadGameState()
+	if err != nil {
+		log.Printf("Failed to load game state: %v", err)
+		gameState = state.NewGameState()
+	}
+
 	game := &Game{
 		config:       config,
 		cursor:       0, // Initial cursor position
 		page:         0, // Initial page position,
 		gameState:    gameState,
+		storage:      storage,
 		decider:      input.NewDefaultDecider(gameState),
 		inputHandler: input.NewHandler(),
 		popup:        ui.Popup{Active: false, Message: ""},
 	}
 	game.validateCursorPosition()
 	return game
+}
+
+func (g *Game) StartAutoSave(ctx context.Context, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	go func() {
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				log.Printf("Auto-save stopped")
+				return
+			case <-ticker.C:
+				// Auto-save the game state
+				err := g.storage.SaveGameState(g.gameState)
+				if err != nil {
+					log.Printf("Auto-save failed: %v", err)
+				}
+			}
+		}
+	}()
 }
 
 func (g *Game) Update() error {
