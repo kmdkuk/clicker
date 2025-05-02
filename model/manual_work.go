@@ -6,7 +6,7 @@ type ManualWork struct {
 	Count int     `json:"count"`
 }
 
-func (m *ManualWork) String() string {
+func (m *ManualWork) String(gameState GameStateReader) string {
 	return m.Name
 }
 

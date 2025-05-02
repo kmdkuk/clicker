@@ -109,15 +109,15 @@ var _ = Describe("Renderer", func() {
 			It("HandlePopup should return appropriate values based on popup state", func() {
 				renderer.ShowPopup("Test message")
 				// Should return true because popup is active
-				renderer.HandlePopup(input.KeyTypeNone)
+				renderer.HandleInput(input.KeyTypeNone)
 				Expect(renderer.IsPopupActive()).To(BeTrue())
 
 				// Close the popup
-				renderer.HandlePopup(input.KeyTypeDecision)
+				renderer.HandleInput(input.KeyTypeDecision)
 				Expect(renderer.IsPopupActive()).To(BeFalse())
 
 				// Should return false because popup is inactive now
-				renderer.HandlePopup(input.KeyTypeNone)
+				renderer.HandleInput(input.KeyTypeNone)
 				Expect(renderer.IsPopupActive()).To(BeFalse())
 			})
 		})
@@ -132,16 +132,16 @@ var _ = Describe("Renderer", func() {
 
 		It("should close popup when HandlePopupInput is called with decision key", func() {
 			// 決定キーでポップアップが閉じることを確認
-			renderer.HandlePopup(input.KeyTypeDecision)
+			renderer.HandleInput(input.KeyTypeDecision)
 			Expect(renderer.IsPopupActive()).To(BeFalse())
 		})
 
 		It("should not close popup when HandlePopupInput is called with non-decision keys", func() {
 			// 決定キー以外ではポップアップが閉じないことを確認
-			renderer.HandlePopup(input.KeyTypeUp)
+			renderer.HandleInput(input.KeyTypeUp)
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 
-			renderer.HandlePopup(input.KeyTypeDown)
+			renderer.HandleInput(input.KeyTypeDown)
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 		})
 	})
@@ -178,7 +178,7 @@ var _ = Describe("Renderer", func() {
 		It("should resume normal navigation after popup is closed", func() {
 			// ポップアップを表示して閉じる
 			renderer.ShowPopup("Test message")
-			renderer.HandlePopup(input.KeyTypeDecision)
+			renderer.HandleInput(input.KeyTypeDecision)
 
 			// 初期状態を保存
 			initialCursor := renderer.GetCursor()
@@ -285,7 +285,7 @@ var _ = Describe("Renderer", func() {
 				// Since we can't directly check drawing, we just verify no panic
 				renderer.DebugMessage("Debug test")
 				Expect(func() {
-					renderer.DebugPrint(mockScreen)
+					renderer.Draw(mockScreen)
 				}).NotTo(Panic())
 			})
 		})
@@ -299,7 +299,7 @@ var _ = Describe("Renderer", func() {
 				renderer.DebugMessage("Debug test")
 				// Again, we just verify no panic
 				Expect(func() {
-					renderer.DebugPrint(mockScreen)
+					renderer.Draw(mockScreen)
 				}).NotTo(Panic())
 			})
 		})

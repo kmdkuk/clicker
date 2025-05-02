@@ -26,14 +26,14 @@ func (b *Building) IsUnlocked() bool {
 	return b.Count > 0
 }
 
-func (b *Building) String(upgrades []Upgrade) string {
+func (b *Building) String(gameState GameStateReader) string {
 	if b.IsUnlocked() {
 		return fmt.Sprintf(
 			"%s (Next Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)",
 			b.Name,
 			b.Cost(),
 			b.Count,
-			b.TotalGenerateRate(upgrades),
+			b.TotalGenerateRate(gameState.GetUpgrades()),
 		)
 	}
 	return fmt.Sprintf(
