@@ -2,5 +2,24 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "automerge": true,
+  "postUpdateOptions": [
+    "gomodTidy"
+  ],
+  "regexManagers": [
+    {
+      "datasourceTemplate": "gihub-tags",
+      "depNameTemplate": "golangci/golangci-lint",
+      "fileMatch": [
+        "^Makefile$"
+      ],
+      "matchStrings": [
+        "GOLANGCI_LINT_VERSION ?= (?<currentValue>.*?)# renovate: golangci\\/golangci-lint"
+      ]
+    }
   ]
 }
