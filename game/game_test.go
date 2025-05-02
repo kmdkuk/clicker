@@ -1,4 +1,4 @@
-package game_test
+package game
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/kmdkuk/clicker/config"
-	"github.com/kmdkuk/clicker/game"
 	"github.com/kmdkuk/clicker/input"
 	"github.com/kmdkuk/clicker/model"
 	"github.com/kmdkuk/clicker/state"
@@ -212,7 +211,7 @@ func (m *mockRenderer) DebugPrint(screen *ebiten.Image) {
 // Game tests
 var _ = Describe("Game", func() {
 	var (
-		testGame      *game.Game
+		testGame      *Game
 		testConfig    *config.Config
 		testGameState state.GameState
 		testStorage   *mockStorage
@@ -236,7 +235,7 @@ var _ = Describe("Game", func() {
 		mockScreen = ebiten.NewImage(640, 480)
 
 		// Create game with dependencies
-		testGame = game.NewGame(testConfig, testGameState, testStorage, testRenderer, testHandler)
+		testGame = NewGame(testConfig, testGameState, testStorage, testRenderer, testHandler)
 
 		// Override game dependencies with our mocks for testing
 		// Note: This would require exposing fields or adding a method for testing
@@ -251,7 +250,7 @@ var _ = Describe("Game", func() {
 			// In a real test, we'd need to inject this mock somehow
 			// For now, we're testing that NewGame doesn't panic
 			Expect(func() {
-				_ = game.NewGame(testConfig, testGameState, storage, testRenderer, testHandler)
+				_ = NewGame(testConfig, testGameState, storage, testRenderer, testHandler)
 			}).NotTo(Panic())
 		})
 
@@ -261,7 +260,7 @@ var _ = Describe("Game", func() {
 
 			// Again, in a real test, we'd need to inject this mock
 			Expect(func() {
-				_ = game.NewGame(testConfig, gameState, storage, testRenderer, testHandler)
+				_ = NewGame(testConfig, gameState, storage, testRenderer, testHandler)
 			}).NotTo(Panic())
 		})
 	})
