@@ -18,8 +18,6 @@ type Renderer interface {
 	ShowPopup(message string)
 	IsPopupActive() bool
 	GetPopupMessage() string
-	GetCursor() int
-	GetPage() int
 	DebugMessage(message string)
 	GetDebugMessage() string
 }
@@ -37,6 +35,7 @@ type DefaultRenderer struct {
 	manualWork *components.List
 	buildings  *components.List
 	upgrades   *components.List
+	tabs       *components.Tab
 	// Add other components as needed
 }
 
@@ -52,8 +51,9 @@ func NewRenderer(config *config.Config, gameState model.GameStateReader, decider
 		manualWork: components.NewList(gameState, []components.ListItem{
 			gameState.GetManualWork(),
 		}, true, 10, 50),
-		buildings: components.NewList(gameState, components.ConvertBuildingToListItems(gameState.GetBuildings()), false, 10, 70),
-		upgrades:  components.NewList(gameState, components.ConvertUpgradeToListItems(gameState.GetUpgrades()), false, 10, 70),
+		buildings: components.NewList(gameState, components.ConvertBuildingToListItems(gameState.GetBuildings()), false, 10, 90),
+		upgrades:  components.NewList(gameState, components.ConvertUpgradeToListItems(gameState.GetUpgrades()), false, 10, 90),
+		tabs:      components.NewTab([]string{"Buildings", "Upgrades"}, 0, 20, 70),
 	}
 }
 
@@ -74,11 +74,17 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	r.manualWork.Draw(screen, r.GetCursor())
+	r.manualWork.Draw(screen, r.navigation.GetCursor())
+
+	// Draw tabs
+	r.tabs.SetActivePage(r.navigation.GetPage()) // Sync tabs with navigation page
+	r.tabs.Draw(screen)
+
 	r.buildings.Visible = r.navigation.GetPage() == 0
 	r.upgrades.Visible = r.navigation.GetPage() == 1
-	r.buildings.Draw(screen, r.GetCursor()-1)
-	r.upgrades.Draw(screen, r.GetCursor()-1)
+	r.buildings.Draw(screen, r.navigation.GetCursor()-1)
+	r.upgrades.Draw(screen, r.navigation.GetCursor()-1)
+
 }
 
 func (r *DefaultRenderer) HandleInput(keyType input.KeyType) {
@@ -119,15 +125,6 @@ func (r *DefaultRenderer) IsPopupActive() bool {
 
 func (r *DefaultRenderer) GetPopupMessage() string {
 	return r.popup.GetMessage()
-}
-
-// Other interface implementation methods
-func (r *DefaultRenderer) GetCursor() int {
-	return r.navigation.GetCursor()
-}
-
-func (r *DefaultRenderer) GetPage() int {
-	return r.navigation.GetPage()
 }
 
 func (r *DefaultRenderer) DebugMessage(message string) {

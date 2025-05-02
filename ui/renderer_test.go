@@ -55,7 +55,7 @@ func (m *mockGameStateReader) GetUpgrades() []model.Upgrade {
 
 var _ = Describe("Renderer", func() {
 	var (
-		renderer   Renderer
+		renderer   *DefaultRenderer
 		gameState  *mockGameStateReader
 		testConfig *config.Config
 		mockScreen *ebiten.Image
@@ -83,7 +83,7 @@ var _ = Describe("Renderer", func() {
 		}
 
 		// Create Renderer
-		renderer = NewRenderer(testConfig, gameState, input.NewDecider(gameState))
+		renderer = NewRenderer(testConfig, gameState, input.NewDecider(gameState)).(*DefaultRenderer)
 
 		// Create mock screen
 		mockScreen = ebiten.NewImage(640, 480)
@@ -162,16 +162,16 @@ var _ = Describe("Renderer", func() {
 			renderer.ShowPopup("Test message")
 
 			// Save initial state
-			initialPage := renderer.GetPage()
-			initialCursor := renderer.GetCursor()
+			initialPage := renderer.navigation.GetPage()
+			initialCursor := renderer.navigation.GetCursor()
 
 			// Send navigation keys
 			renderer.HandleInput(input.KeyTypeRight) // Try to change page
 			renderer.HandleInput(input.KeyTypeDown)  // Try to move cursor
 
 			// Verify navigation doesn't work when popup is active
-			Expect(renderer.GetPage()).To(Equal(initialPage))
-			Expect(renderer.GetCursor()).To(Equal(initialCursor))
+			Expect(renderer.navigation.GetPage()).To(Equal(initialPage))
+			Expect(renderer.navigation.GetCursor()).To(Equal(initialCursor))
 		})
 
 		It("should resume normal navigation after popup is closed", func() {
@@ -180,11 +180,11 @@ var _ = Describe("Renderer", func() {
 			renderer.HandleInput(input.KeyTypeDecision)
 
 			// Save initial state
-			initialCursor := renderer.GetCursor()
+			initialCursor := renderer.navigation.GetCursor()
 
 			// Verify cursor movement works
 			renderer.HandleInput(input.KeyTypeDown)
-			Expect(renderer.GetCursor()).NotTo(Equal(initialCursor))
+			Expect(renderer.navigation.GetCursor()).NotTo(Equal(initialCursor))
 		})
 	})
 
@@ -207,52 +207,52 @@ var _ = Describe("Renderer", func() {
 	Describe("Navigation and cursor management", func() {
 		It("should initialize cursor and page to default values", func() {
 			// Verify initial states
-			Expect(renderer.GetPage()).To(Equal(0))
-			Expect(renderer.GetCursor()).To(Equal(0))
+			Expect(renderer.navigation.GetPage()).To(Equal(0))
+			Expect(renderer.navigation.GetCursor()).To(Equal(0))
 		})
 
 		Context("when handling navigation inputs", func() {
 			It("should move cursor up and down", func() {
 				// Initial cursor position should be 0
-				Expect(renderer.GetCursor()).To(Equal(0))
+				Expect(renderer.navigation.GetCursor()).To(Equal(0))
 
 				// Move cursor down
 				renderer.HandleInput(input.KeyTypeDown)
-				Expect(renderer.GetCursor()).To(Equal(1))
+				Expect(renderer.navigation.GetCursor()).To(Equal(1))
 
 				// Move cursor up
 				renderer.HandleInput(input.KeyTypeUp)
-				Expect(renderer.GetCursor()).To(Equal(0))
+				Expect(renderer.navigation.GetCursor()).To(Equal(0))
 			})
 
 			It("should wrap cursor when reaching boundaries", func() {
 				// Move cursor up from top position (should wrap to bottom)
 				renderer.HandleInput(input.KeyTypeUp)
 				totalItems := len(gameState.GetBuildings()) + 1 // Manual work + buildings
-				Expect(renderer.GetCursor()).To(Equal(totalItems - 1))
+				Expect(renderer.navigation.GetCursor()).To(Equal(totalItems - 1))
 			})
 
 			It("should change pages using left/right keys", func() {
 				// Initial page should be 0
-				Expect(renderer.GetPage()).To(Equal(0))
+				Expect(renderer.navigation.GetPage()).To(Equal(0))
 
 				// Move to next page
 				renderer.HandleInput(input.KeyTypeRight)
-				Expect(renderer.GetPage()).To(Equal(1))
+				Expect(renderer.navigation.GetPage()).To(Equal(1))
 
 				// Move back to previous page
 				renderer.HandleInput(input.KeyTypeLeft)
-				Expect(renderer.GetPage()).To(Equal(0))
+				Expect(renderer.navigation.GetPage()).To(Equal(0))
 
 				// Navigate left from first page should wrap to last page
 				renderer.HandleInput(input.KeyTypeLeft)
-				Expect(renderer.GetPage()).To(Equal(1)) // Assuming 2 pages total
+				Expect(renderer.navigation.GetPage()).To(Equal(1)) // Assuming 2 pages total
 			})
 
 			It("should validate cursor position when switching pages", func() {
 				// Move to page 1
 				renderer.HandleInput(input.KeyTypeRight)
-				Expect(renderer.GetPage()).To(Equal(1))
+				Expect(renderer.navigation.GetPage()).To(Equal(1))
 
 				// Set cursor to position that might be invalid on other pages
 				for i := 0; i < 5; i++ {
@@ -263,7 +263,7 @@ var _ = Describe("Renderer", func() {
 				renderer.HandleInput(input.KeyTypeLeft)
 
 				// Cursor should be validated within bounds of page 0
-				Expect(renderer.GetCursor()).To(BeNumerically("<=", len(gameState.GetBuildings())))
+				Expect(renderer.navigation.GetCursor()).To(BeNumerically("<=", len(gameState.GetBuildings())))
 			})
 		})
 	})
