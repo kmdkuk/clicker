@@ -51,7 +51,7 @@ var _ = Describe("StorageDriverDefault", func() {
 			Expect(loadedByte).To(Equal(testByte))
 		})
 
-		It("should return an empty and error if the save file does not exist", func() {
+		It("should return an error and an empty slice if the save file does not exist", func() {
 			// Load the game state
 			loadedByte, err := storageDriver.LoadData()
 			Expect(err).To(HaveOccurred())
