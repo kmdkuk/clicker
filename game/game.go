@@ -1,6 +1,7 @@
 package game
 
 import (
+	"context"
 	"fmt"
 	"image/color"
 	"log"
@@ -50,13 +51,21 @@ func NewGame(config *config.Config) *Game {
 	return game
 }
 
-func (g *Game) StartAutoSave(interval time.Duration) {
+func (g *Game) StartAutoSave(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	go func() {
-		for range ticker.C {
-			err := g.storage.SaveGameState(g.gameState)
-			if err != nil {
-				log.Printf("Auto-save failed: %v", err)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				log.Printf("Auto-save stopped")
+				return
+			case <-ticker.C:
+				// Auto-save the game state
+				err := g.storage.SaveGameState(g.gameState)
+				if err != nil {
+					log.Printf("Auto-save failed: %v", err)
+				}
 			}
 		}
 	}()
