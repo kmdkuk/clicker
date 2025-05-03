@@ -16,7 +16,7 @@ var _ = Describe("DefaultGameState", func() {
 	BeforeEach(func() {
 		gameState = DefaultGameState{
 			Money:      0,
-			ManualWork: model.ManualWork{Name: "Manual Work: $0.1", Value: 0.1, Count: 0},
+			ManualWork: model.ManualWork{Name: "Manual Work: $0.1", BaseValue: 0.1, Count: 0},
 			Buildings:  level.NewBuildings(),
 			Upgrades:   level.NewUpgrades(),
 			LastUpdate: time.Now(),

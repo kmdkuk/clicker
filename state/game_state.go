@@ -37,7 +37,7 @@ type DefaultGameState struct {
 func NewGameState() GameState {
 	return &DefaultGameState{
 		Money:      0,
-		ManualWork: model.ManualWork{Name: "Manual Work: $0.1", Value: 0.1, Count: 0},
+		ManualWork: model.ManualWork{Name: "Manual Work", BaseValue: 0.1, Count: 0},
 		Buildings:  level.NewBuildings(),
 		Upgrades:   level.NewUpgrades(),
 		LastUpdate: time.Now(),

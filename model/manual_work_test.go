@@ -13,9 +13,9 @@ var _ = Describe("ManualWork", func() {
 
 	BeforeEach(func() {
 		manualWork = &ManualWork{
-			Name:  "Manual Click",
-			Value: 1.0,
-			Count: 0,
+			Name:      "Manual Click",
+			BaseValue: 1.0,
+			Count:     0,
 		}
 
 		upgrades = []Upgrade{
@@ -54,14 +54,14 @@ var _ = Describe("ManualWork", func() {
 
 	Describe("UpdateValue", func() {
 		It("should apply purchased upgrades to the base value", func() {
-			value := manualWork.UpdateValue(upgrades)
+			value := manualWork.GetValue(upgrades)
 			Expect(value).To(Equal(2.0)) // 1.0 * 2.0
 		})
 
 		It("should not apply unpurchased upgrades", func() {
 			// Change first upgrade to unpurchased
 			upgrades[0].IsPurchased = false
-			value := manualWork.UpdateValue(upgrades)
+			value := manualWork.GetValue(upgrades)
 			Expect(value).To(Equal(1.0)) // No upgrades applied
 		})
 
@@ -69,7 +69,7 @@ var _ = Describe("ManualWork", func() {
 			// Make both upgrades purchased
 			upgrades[0].IsPurchased = true
 			upgrades[1].IsPurchased = true
-			value := manualWork.UpdateValue(upgrades)
+			value := manualWork.GetValue(upgrades)
 			Expect(value).To(Equal(3.0)) // 1.0 * 2.0 * 1.5
 		})
 
@@ -86,7 +86,7 @@ var _ = Describe("ManualWork", func() {
 			}
 
 			upgrades = append(upgrades, buildingUpgrade)
-			value := manualWork.UpdateValue(upgrades)
+			value := manualWork.GetValue(upgrades)
 			Expect(value).To(Equal(2.0)) // Only the manual work upgrade should apply
 		})
 	})
