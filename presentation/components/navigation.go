@@ -1,8 +1,8 @@
 package components
 
 import (
-	"github.com/kmdkuk/clicker/input"
-	"github.com/kmdkuk/clicker/model"
+	"github.com/kmdkuk/clicker/domain/model"
+	"github.com/kmdkuk/clicker/presentation/input"
 )
 
 // NavigationComponent handles cursor position and page management

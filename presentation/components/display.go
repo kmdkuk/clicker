@@ -3,9 +3,10 @@ package components
 import (
 	"fmt"
 
+	"github.com/kmdkuk/clicker/domain/model"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/kmdkuk/clicker/model"
 )
 
 // DisplayComponent shows basic game information

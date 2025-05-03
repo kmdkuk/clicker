@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/kmdkuk/clicker/config"
-	"github.com/kmdkuk/clicker/input"
-	"github.com/kmdkuk/clicker/model"
-	"github.com/kmdkuk/clicker/state"
+	"github.com/kmdkuk/clicker/domain/model"
+	"github.com/kmdkuk/clicker/infrastructure/state"
+	"github.com/kmdkuk/clicker/presentation/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	. "github.com/onsi/ginkgo/v2"

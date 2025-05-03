@@ -1,9 +1,10 @@
-package state
+package storage
 
 import (
 	"errors"
 
-	"github.com/kmdkuk/clicker/level"
+	"github.com/kmdkuk/clicker/game/level"
+	"github.com/kmdkuk/clicker/infrastructure/state"
 )
 
 type Save struct {
@@ -13,7 +14,7 @@ type Save struct {
 	ManualWork int
 }
 
-func ConverToSave(gameState GameState) Save {
+func ConverToSave(gameState state.GameState) Save {
 	buildings := make([]int, len(gameState.GetBuildings()))
 	upgradings := make([]bool, len(gameState.GetUpgrades()))
 
@@ -33,8 +34,8 @@ func ConverToSave(gameState GameState) Save {
 	}
 }
 
-func (s *Save) ConvertToGameState() (GameState, error) {
-	gameState := NewGameState()
+func (s *Save) ConvertToGameState() (state.GameState, error) {
+	gameState := state.NewGameState()
 	gameState.UpdateMoney(s.Money)
 	if err := gameState.SetManualWorkCount(s.ManualWork); err != nil {
 		return gameState, err

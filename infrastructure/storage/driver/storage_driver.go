@@ -1,4 +1,4 @@
-package state
+package driver
 
 type StorageDriver interface {
 	SaveData(data []byte) error

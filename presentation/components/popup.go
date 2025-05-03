@@ -1,9 +1,10 @@
 package components
 
 import (
+	"github.com/kmdkuk/clicker/presentation/input"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/kmdkuk/clicker/input"
 )
 
 type Popup struct {

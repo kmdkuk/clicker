@@ -1,6 +1,6 @@
 package level
 
-import "github.com/kmdkuk/clicker/model"
+import "github.com/kmdkuk/clicker/domain/model"
 
 func NewBuildings() []model.Building {
 	return []model.Building{

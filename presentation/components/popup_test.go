@@ -1,7 +1,7 @@
 package components
 
 import (
-	"github.com/kmdkuk/clicker/input"
+	"github.com/kmdkuk/clicker/presentation/input"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

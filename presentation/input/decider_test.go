@@ -3,7 +3,8 @@ package input
 import (
 	"time"
 
-	"github.com/kmdkuk/clicker/model"
+	"github.com/kmdkuk/clicker/domain/model"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

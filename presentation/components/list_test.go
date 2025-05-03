@@ -1,7 +1,7 @@
 package components
 
 import (
-	"github.com/kmdkuk/clicker/model"
+	"github.com/kmdkuk/clicker/domain/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	. "github.com/onsi/ginkgo/v2"

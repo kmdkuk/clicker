@@ -3,7 +3,7 @@ package components
 import (
 	"log"
 
-	"github.com/kmdkuk/clicker/model"
+	"github.com/kmdkuk/clicker/domain/model"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"

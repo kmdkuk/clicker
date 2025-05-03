@@ -1,12 +1,12 @@
-package ui
+package presentation
 
 import (
 	"image/color"
 
 	"github.com/kmdkuk/clicker/config"
-	"github.com/kmdkuk/clicker/input"
-	"github.com/kmdkuk/clicker/model"
-	"github.com/kmdkuk/clicker/ui/components"
+	"github.com/kmdkuk/clicker/domain/model"
+	"github.com/kmdkuk/clicker/presentation/components"
+	"github.com/kmdkuk/clicker/presentation/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kmdkuk/clicker/level"
-	"github.com/kmdkuk/clicker/model"
+	"github.com/kmdkuk/clicker/domain/model"
+	"github.com/kmdkuk/clicker/game/level"
 )
 
 type GameState interface {
