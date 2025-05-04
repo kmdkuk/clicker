@@ -64,6 +64,25 @@ var _ = Describe("DefaultGameState", func() {
 			Expect(gameState.GetTotalGenerateRate()).To(BeNumerically("~", expectedRate, 0.00001))
 		})
 
+		It("should calculate the total generate rate from all unlocked buildings with upgrades", func() {
+			gameState.Buildings[0].Count = 1
+			gameState.Buildings[1].Count = 2
+			gameState.Upgrades = []model.Upgrade{
+				{
+					Name:        "Upgrade1",
+					IsPurchased: true,
+					Effect: func(v float64) float64 {
+						return v * 1.1
+					},
+					IsTargetManualWork: false,
+					TargetBuilding:     0,
+				},
+			}
+
+			expectedRate := gameState.Buildings[0].BaseGenerateRate*1*1.1 + gameState.Buildings[1].BaseGenerateRate*2
+			Expect(gameState.GetTotalGenerateRate()).To(BeNumerically("~", expectedRate, 0.00001))
+		})
+
 		It("should return 0 if no buildings are unlocked", func() {
 			Expect(gameState.GetTotalGenerateRate()).To(Equal(0.0))
 		})
