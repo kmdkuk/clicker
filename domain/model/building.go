@@ -2,6 +2,8 @@ package model
 
 import (
 	"math"
+
+	"github.com/kmdkuk/clicker/config"
 )
 
 type Building struct {
@@ -17,7 +19,7 @@ func (b *Building) Cost() float64 {
 	if b.Count == 0 {
 		return b.BaseCost
 	}
-	cost := b.BaseCost * math.Pow(1.15, float64(b.Count))
+	cost := b.BaseCost * math.Pow(config.CostMultiplier, float64(b.Count))
 	return cost
 }
 

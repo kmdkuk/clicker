@@ -17,6 +17,7 @@ type GameState interface {
 	GetUpgrades() []model.Upgrade
 	SetUpgrades(upgrades []model.Upgrade)
 	SetUpgradesIsPurchased(upgradeIndex int, isPurchased bool) error
+	SetUpgradesIsPurchasedWithID(ID string, isPurchased bool) error
 	GetMoney() float64
 	GetManualWork() *model.ManualWork
 	SetManualWorkCount(count int) error
@@ -70,6 +71,16 @@ func (g *DefaultGameState) SetUpgradesIsPurchased(upgradeIndex int, isPurchased 
 	}
 	g.Upgrades[upgradeIndex].IsPurchased = isPurchased
 	return nil
+}
+
+func (g *DefaultGameState) SetUpgradesIsPurchasedWithID(ID string, isPurchased bool) error {
+	for i, upgrade := range g.Upgrades {
+		if upgrade.ID == ID {
+			g.Upgrades[i].IsPurchased = isPurchased
+			return nil
+		}
+	}
+	return fmt.Errorf("upgrade with id %s not found", ID)
 }
 
 func (g *DefaultGameState) GetMoney() float64 {

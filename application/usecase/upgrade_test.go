@@ -44,6 +44,16 @@ func (m *MockGameState) SetUpgradesIsPurchased(upgradeIndex int, isPurchased boo
 	return nil
 }
 
+func (m *MockGameState) SetUpgradesIsPurchasedWithID(ID string, isPurchased bool) error {
+	for i := range m.Upgrades {
+		if m.Upgrades[i].Name == ID {
+			m.Upgrades[i].IsPurchased = isPurchased
+			return nil
+		}
+	}
+	return errors.New("upgrade not found")
+}
+
 func (m *MockGameState) UpdateMoney(amount float64) {
 	m.UpdateMoneyAmount = amount
 	m.Money += amount

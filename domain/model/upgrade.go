@@ -1,6 +1,7 @@
 package model
 
 type Upgrade struct {
+	ID                 string                     `json:"id"`
 	Name               string                     `json:"name"`
 	Cost               float64                    `json:"cost"`
 	Effect             func(float64) float64      `json:"-"` // Exclude from JSON encoding

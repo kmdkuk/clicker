@@ -10,9 +10,14 @@ var _ = Describe("Save", func() {
 
 	BeforeEach(func() {
 		save = Save{
-			Money:      100.0,
-			Buildings:  []int{1, 2, 3},
-			Upgradings: []bool{true},
+			Money:     100.0,
+			Buildings: []int{1, 2, 3},
+			Upgradings: []upgrade{
+				{
+					ID:          "upgrade1",
+					IsPurchased: true,
+				},
+			},
 			ManualWork: 10,
 		}
 	})
@@ -33,7 +38,20 @@ var _ = Describe("Save", func() {
 		})
 
 		It("should return false if Upgradings length is invalid", func() {
-			save.Upgradings = []bool{true, false, true}
+			save.Upgradings = []upgrade{
+				{
+					ID:          "upgrade1",
+					IsPurchased: true,
+				},
+				{
+					ID:          "upgrade2",
+					IsPurchased: false,
+				},
+				{
+					ID:          "upgrade3",
+					IsPurchased: true,
+				},
+			}
 			Expect(save.Validation()).To(HaveOccurred())
 		})
 
@@ -65,7 +83,24 @@ var _ = Describe("Save", func() {
 		})
 
 		It("should return an error if setting Upgradings fails", func() {
-			save.Upgradings = []bool{true, false, true, true} // 長さが不正
+			save.Upgradings = []upgrade{
+				{
+					ID:          "upgrade1",
+					IsPurchased: true,
+				},
+				{
+					ID:          "upgrade2",
+					IsPurchased: false,
+				},
+				{
+					ID:          "upgrade3",
+					IsPurchased: true,
+				},
+				{
+					ID:          "invalid_upgrade",
+					IsPurchased: true,
+				},
+			}
 			_, err := save.ConvertToGameState()
 			Expect(err).To(HaveOccurred())
 		})

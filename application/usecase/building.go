@@ -33,6 +33,25 @@ func (b *BuildingUseCase) GetBuildings() []dto.Building {
 	return buildings
 }
 
+func (b *BuildingUseCase) GetBuildingsIsUnlockedWithNextLock() []dto.Building {
+	buildings := b.GetBuildings()
+	buildingsIsUnlockedWithNextLock := make([]dto.Building, 0)
+	unlockIndex := 0
+	for i, building := range buildings {
+		if building.IsUnlocked {
+			buildingsIsUnlockedWithNextLock = append(buildingsIsUnlockedWithNextLock, building)
+			unlockIndex = i
+		}
+	}
+	if unlockIndex+1 >= len(buildings) {
+		return buildingsIsUnlockedWithNextLock
+	}
+	maskedNextLockBuilding := buildings[unlockIndex+1]
+	maskedNextLockBuilding.Name = "???"
+	buildingsIsUnlockedWithNextLock = append(buildingsIsUnlockedWithNextLock, maskedNextLockBuilding)
+	return buildingsIsUnlockedWithNextLock
+}
+
 func (b *BuildingUseCase) PurchaseBuildingAction(buildingIndex int) (bool, string) {
 	buildings := b.gameState.GetBuildings()
 	if buildingIndex < 0 || buildingIndex >= len(buildings) {

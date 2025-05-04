@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"sort"
+
 	"github.com/kmdkuk/clicker/application/dto"
 	"github.com/kmdkuk/clicker/infrastructure/state"
 )
@@ -26,6 +28,22 @@ func (u *UpgradeUseCase) GetUpgrades() []dto.Upgrade {
 		}
 	}
 	return upgrades
+}
+
+func (u *UpgradeUseCase) GetUpgradesIsReleasedCostSorted() []dto.Upgrade {
+	upgrades := u.GetUpgrades()
+	upgradesIsRelease := make([]dto.Upgrade, 0)
+	for _, upgrade := range upgrades {
+		if upgrade.IsReleased {
+			upgradesIsRelease = append(upgradesIsRelease, upgrade)
+		}
+	}
+
+	sort.Slice(upgradesIsRelease, func(i, j int) bool {
+		return upgradesIsRelease[i].Cost < upgradesIsRelease[j].Cost
+	})
+
+	return upgradesIsRelease
 }
 
 func (u *UpgradeUseCase) PurchaseUpgradeAction(upgradeIndex int) (bool, string) {
