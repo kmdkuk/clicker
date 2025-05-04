@@ -6,12 +6,14 @@ package driver
 import (
 	"errors"
 	"syscall/js"
+
+	"github.com/kmdkuk/clicker/config"
 )
 
 func NewStorageDriver(key string) StorageDriver {
 	if key == "" {
 		return &StorageWasm{
-			key: defaultSaveKey,
+			key: config.DefaultSaveKey,
 		}
 	}
 	return &StorageWasm{
@@ -22,8 +24,6 @@ func NewStorageDriver(key string) StorageDriver {
 type StorageWasm struct {
 	key string
 }
-
-const defaultSaveKey = "game_state.json"
 
 func (s *StorageWasm) SaveData(data []byte) error {
 	localStorage := js.Global().Get("localStorage")
@@ -44,4 +44,8 @@ func (s *StorageWasm) LoadData() ([]byte, error) {
 		return nil, nil // Return nil if no data is found.
 	}
 	return []byte(data.String()), nil
+}
+
+func (s *StorageWasm) GetKeyName() string {
+	return s.key
 }

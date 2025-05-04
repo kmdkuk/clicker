@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/kmdkuk/clicker/game/level"
 	"github.com/kmdkuk/clicker/infrastructure/state"
@@ -55,16 +55,16 @@ func (s *Save) ConvertToGameState() (state.GameState, error) {
 
 func (s *Save) Validation() error {
 	if s.Money < 0 {
-		return errors.New("invalid money value")
+		return fmt.Errorf("invalid money value: %f", s.Money)
 	}
 	if len(s.Buildings) > len(level.NewBuildings()) {
-		return errors.New("invalid buildings count")
+		return fmt.Errorf("invalid buildings count: %d", len(s.Buildings))
 	}
 	if len(s.Upgradings) > len(level.NewUpgrades()) {
-		return errors.New("invalid upgrades count")
+		return fmt.Errorf("invalid upgradings count: %d", len(s.Upgradings))
 	}
 	if s.ManualWork < 0 {
-		return errors.New("invalid manual work value")
+		return fmt.Errorf("invalid manual work count: %d", s.ManualWork)
 	}
 	return nil
 }
