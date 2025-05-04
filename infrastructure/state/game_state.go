@@ -9,11 +9,8 @@ import (
 )
 
 type GameState interface {
-	ManualWorkAction()                                       // マニュアルワークを実行します
-	UpdateMoney(amount float64)                              // お金を更新します
-	PurchaseBuildingAction(buildingIndex int) (bool, string) // 建物を購入します
-	PurchaseUpgradeAction(upgradeIndex int) (bool, string)   // アップグレードを購入します
-	GetTotalGenerateRate() float64                           // 総生成レートを取得します
+	UpdateMoney(amount float64)    // お金を更新します
+	GetTotalGenerateRate() float64 // 総生成レートを取得します
 	UpdateBuildings(now time.Time)
 	GetBuildings() []model.Building
 	SetBuildingCount(buildingIndex int, count int) error
@@ -99,51 +96,6 @@ func (g *DefaultGameState) ManualWorkAction() {
 
 func (g *DefaultGameState) UpdateMoney(amount float64) {
 	g.Money += amount
-}
-
-func (g *DefaultGameState) PurchaseBuildingAction(buildingIndex int) (bool, string) {
-	if buildingIndex < 0 || buildingIndex >= len(g.Buildings) {
-		return false, "Invalid building selection!"
-	}
-
-	building := &g.Buildings[buildingIndex]
-	cost := building.Cost()
-
-	if g.Money < cost {
-		if building.IsUnlocked() {
-			return false, "Not enough money to purchase!"
-		}
-		return false, "Not enough money to unlock!"
-	}
-
-	g.UpdateMoney(-cost)
-	building.Count++
-	return true, "Building purchased successfully!"
-}
-
-// PurchaseUpgradeAction はアップグレードの購入を試みて結果を返します
-func (g *DefaultGameState) PurchaseUpgradeAction(upgradeIndex int) (bool, string) {
-	if upgradeIndex < 0 || upgradeIndex >= len(g.Upgrades) {
-		return false, "Invalid upgrade selection!"
-	}
-
-	upgrade := &g.Upgrades[upgradeIndex]
-
-	if upgrade.IsPurchased {
-		return false, "Upgrade already purchased!"
-	}
-
-	if !upgrade.IsReleased(g) {
-		return false, "Upgrade not available yet!"
-	}
-
-	if g.Money < upgrade.Cost {
-		return false, "Not enough money for upgrade!"
-	}
-
-	g.UpdateMoney(-upgrade.Cost)
-	upgrade.IsPurchased = true
-	return true, "Upgrade purchased successfully!"
 }
 
 func (g *DefaultGameState) GetTotalGenerateRate() float64 {

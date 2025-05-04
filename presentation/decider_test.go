@@ -1,8 +1,9 @@
-package input
+package presentation
 
 import (
 	"time"
 
+	"github.com/kmdkuk/clicker/application/dto"
 	"github.com/kmdkuk/clicker/domain/model"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -67,27 +68,31 @@ func (m *MockGameState) PurchaseUpgradeAction(buildingIndex int) (bool, string) 
 
 var _ = Describe("Decider", func() {
 	var (
-		gameState *MockGameState
-		decider   Decider
+		decider           Decider
+		manualWorkUseCase *MockManualWorkUseCase
+		buildingUseCase   *MockBuildingUseCase
+		upgradeUseCase    *MockUpgradeUseCase
 	)
 
 	BeforeEach(func() {
-		gameState = &MockGameState{
-			money: 0,
-			buildings: []model.Building{
-				{Name: "Building 1", BaseGenerateRate: 1.0},
-				{Name: "Building 2", BaseGenerateRate: 2.0},
-			},
-			upgrades: []model.Upgrade{
-				{Name: "Upgrade 1", IsReleased: func(g model.GameStateReader) bool { return true }, IsTargetManualWork: true, Effect: func(value float64) float64 { return value * 2 }},
-			},
-			manualWorkCalled:             false,
-			updateBuildingsCalled:        false,
-			getTotalGenerateRateCalled:   false,
-			purchaseBuildingActionCalled: false,
-			purchaseUpgradeActionCalled:  false,
+		manualWorkUseCase = &MockManualWorkUseCase{
+			ManualWorkActionCalled: false,
 		}
-		decider = NewDecider(gameState)
+		buildingUseCase = &MockBuildingUseCase{
+			PurchaseBuildingActionCalled: false,
+			buildings: []dto.Building{
+				{Name: "Building 1"},
+				{Name: "Building 2"},
+			},
+		}
+		upgradeUseCase = &MockUpgradeUseCase{
+			PurchaseUpgradeActionCalled: false,
+		}
+		decider = NewDecider(
+			manualWorkUseCase,
+			buildingUseCase,
+			upgradeUseCase,
+		)
 	})
 
 	Context("Decide", func() {
@@ -95,45 +100,36 @@ var _ = Describe("Decider", func() {
 			success, message := decider.Decide(0, 0)
 			Expect(success).To(BeTrue())
 			Expect(message).To(Equal(""))
-			Expect(gameState.manualWorkCalled).To(BeTrue())
-			Expect(gameState.updateBuildingsCalled).To(BeFalse())
-			Expect(gameState.getTotalGenerateRateCalled).To(BeFalse())
-			Expect(gameState.purchaseBuildingActionCalled).To(BeFalse())
-			Expect(gameState.purchaseUpgradeActionCalled).To(BeFalse())
-			Expect(gameState.GetManualWork().Count).To(Equal(1))
+			Expect(manualWorkUseCase.ManualWorkActionCalled).To(BeTrue())
+			Expect(buildingUseCase.PurchaseBuildingActionCalled).To(BeFalse())
+			Expect(upgradeUseCase.PurchaseUpgradeActionCalled).To(BeFalse())
 		})
 
 		It("should call PurchaseBuildingAction when page is 0 and cursor is not 0", func() {
 			success, message := decider.Decide(0, 1)
 			Expect(success).To(BeTrue())
 			Expect(message).To(Equal(""))
-			Expect(gameState.manualWorkCalled).To(BeFalse())
-			Expect(gameState.updateBuildingsCalled).To(BeFalse())
-			Expect(gameState.getTotalGenerateRateCalled).To(BeFalse())
-			Expect(gameState.purchaseBuildingActionCalled).To(BeTrue())
-			Expect(gameState.purchaseUpgradeActionCalled).To(BeFalse())
+			Expect(manualWorkUseCase.ManualWorkActionCalled).To(BeFalse())
+			Expect(buildingUseCase.PurchaseBuildingActionCalled).To(BeTrue())
+			Expect(upgradeUseCase.PurchaseUpgradeActionCalled).To(BeFalse())
 		})
 
 		It("should call PurchaseUpgradeAction when page is 1 and cursor is not 0", func() {
 			success, message := decider.Decide(1, 1)
 			Expect(success).To(BeTrue())
 			Expect(message).To(Equal(""))
-			Expect(gameState.manualWorkCalled).To(BeFalse())
-			Expect(gameState.updateBuildingsCalled).To(BeFalse())
-			Expect(gameState.getTotalGenerateRateCalled).To(BeFalse())
-			Expect(gameState.purchaseBuildingActionCalled).To(BeFalse())
-			Expect(gameState.purchaseUpgradeActionCalled).To(BeTrue())
+			Expect(manualWorkUseCase.ManualWorkActionCalled).To(BeFalse())
+			Expect(buildingUseCase.PurchaseBuildingActionCalled).To(BeFalse())
+			Expect(upgradeUseCase.PurchaseUpgradeActionCalled).To(BeTrue())
 		})
 
 		It("should return false for invalid page selection", func() {
 			success, message := decider.Decide(2, 1)
 			Expect(success).To(BeFalse())
 			Expect(message).To(Equal("Invalid page selection"))
-			Expect(gameState.manualWorkCalled).To(BeFalse())
-			Expect(gameState.updateBuildingsCalled).To(BeFalse())
-			Expect(gameState.getTotalGenerateRateCalled).To(BeFalse())
-			Expect(gameState.purchaseBuildingActionCalled).To(BeFalse())
-			Expect(gameState.purchaseUpgradeActionCalled).To(BeFalse())
+			Expect(manualWorkUseCase.ManualWorkActionCalled).To(BeFalse())
+			Expect(buildingUseCase.PurchaseBuildingActionCalled).To(BeFalse())
+			Expect(upgradeUseCase.PurchaseUpgradeActionCalled).To(BeFalse())
 		})
 	})
 })

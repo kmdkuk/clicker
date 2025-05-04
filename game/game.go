@@ -60,6 +60,8 @@ func (g *Game) Update() error {
 	// Update game state
 	g.renderer.HandleInput(g.inputHandler.GetPressedKey())
 
+	g.renderer.Update()
+
 	return nil
 }
 

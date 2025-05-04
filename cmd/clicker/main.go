@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/kmdkuk/clicker/application/usecase"
 	"github.com/kmdkuk/clicker/config"
 	"github.com/kmdkuk/clicker/game"
 	"github.com/kmdkuk/clicker/infrastructure/state"
@@ -26,8 +27,14 @@ func main() {
 	if state, err := storage.LoadGameState(); err == nil {
 		gameState = state
 	}
+	renderer := presentation.NewRenderer(
+		cfg,
+		usecase.NewPlayerUsecase(gameState),
+		usecase.NewManualWorkUseCase(gameState),
+		usecase.NewBuildingUseCase(gameState),
+		usecase.NewUpgradeUseCase(gameState),
+	)
 	inputHandler := input.NewHandler()
-	renderer := presentation.NewRenderer(cfg, gameState, input.NewDecider(gameState))
 	g := game.NewGame(
 		cfg,
 		gameState,

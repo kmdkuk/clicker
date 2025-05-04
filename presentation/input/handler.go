@@ -5,18 +5,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// KeyType represents the type of key input
-type KeyType int
-
-const (
-	KeyTypeUp       KeyType = iota // Up
-	KeyTypeDown                    // Down
-	KeyTypeLeft                    // Left
-	KeyTypeRight                   // Right
-	KeyTypeDecision                // Decision
-	KeyTypeNone                    // No input or other keys
-)
-
 // Handler is an interface for handling input
 type Handler interface {
 	Update()

@@ -3,8 +3,8 @@ package presentation
 import (
 	"image/color"
 
+	"github.com/kmdkuk/clicker/application/dto"
 	"github.com/kmdkuk/clicker/config"
-	"github.com/kmdkuk/clicker/domain/model"
 	"github.com/kmdkuk/clicker/presentation/components"
 	"github.com/kmdkuk/clicker/presentation/input"
 
@@ -13,6 +13,7 @@ import (
 )
 
 type Renderer interface {
+	Update()
 	Draw(screen *ebiten.Image)
 	HandleInput(keyType input.KeyType)
 	ShowPopup(message string)
@@ -22,15 +23,37 @@ type Renderer interface {
 	GetDebugMessage() string
 }
 
+type PlayerUseCase interface {
+	GetPlayer() *dto.Player
+}
+
+type ManualWorkUseCase interface {
+	ManualWorkAction()
+	GetManualWork() *dto.ManualWork
+}
+
+type BuildingUseCase interface {
+	PurchaseBuildingAction(cursor int) (bool, string)
+	GetBuildings() []dto.Building
+}
+
+type UpgradeUseCase interface {
+	PurchaseUpgradeAction(cursor int) (bool, string)
+	GetUpgrades() []dto.Upgrade
+}
+
 type DefaultRenderer struct {
-	config       *config.Config
-	gameState    model.GameStateReader
-	debugMessage string
-	decider      input.Decider
+	config            *config.Config
+	playerUseCase     PlayerUseCase
+	manualWorkUseCase ManualWorkUseCase
+	buildingUseCase   BuildingUseCase
+	upgradeUseCase    UpgradeUseCase
+	debugMessage      string
+	decider           Decider
+	navigation        *Navigation
 
 	// Components for rendering different parts of the UI
 	display    *components.Display
-	navigation *components.Navigation
 	popup      *components.Popup
 	manualWork *components.List
 	buildings  *components.List
@@ -39,22 +62,32 @@ type DefaultRenderer struct {
 	// Add other components as needed
 }
 
-func NewRenderer(config *config.Config, gameState model.GameStateReader, decider input.Decider) Renderer {
+func NewRenderer(config *config.Config, playerUseCase PlayerUseCase, manualWorkUseCase ManualWorkUseCase, buildingUseCase BuildingUseCase, upgradeUseCase UpgradeUseCase) Renderer {
+
 	return &DefaultRenderer{
-		config:       config,
-		gameState:    gameState,
-		debugMessage: "",
-		decider:      decider,
-		display:      components.NewDisplay(gameState),
-		navigation:   components.NewNavigation(gameState),
-		popup:        components.NewPopup(),
-		manualWork: components.NewList(gameState, []components.ListItem{
-			gameState.GetManualWork(),
-		}, true, 10, 50),
-		buildings: components.NewList(gameState, components.ConvertBuildingToListItems(gameState.GetBuildings()), false, 10, 90),
-		upgrades:  components.NewList(gameState, components.ConvertUpgradeToListItems(gameState.GetUpgrades()), false, 10, 90),
-		tabs:      components.NewTab([]string{"Buildings", "Upgrades"}, 0, 20, 70),
+		config:            config,
+		playerUseCase:     playerUseCase,
+		manualWorkUseCase: manualWorkUseCase,
+		buildingUseCase:   buildingUseCase,
+		upgradeUseCase:    upgradeUseCase,
+		debugMessage:      "",
+		decider:           NewDecider(manualWorkUseCase, buildingUseCase, upgradeUseCase),
+		navigation:        NewNavigation([]int{len(buildingUseCase.GetBuildings()), len(upgradeUseCase.GetUpgrades())}),
+		display:           components.NewDisplay(),
+		popup:             components.NewPopup(),
+		manualWork:        components.NewList(true, 10, 50),
+		buildings:         components.NewList(false, 10, 90),
+		upgrades:          components.NewList(false, 10, 90),
+		tabs:              components.NewTab([]string{"Buildings", "Upgrades"}, 0, 20, 70),
 	}
+}
+
+func (r *DefaultRenderer) Update() {
+	r.manualWork.Items = []components.ListItem{
+		r.manualWorkUseCase.GetManualWork(),
+	}
+	r.buildings.Items = components.ConvertBuildingToListItems(r.buildingUseCase.GetBuildings())
+	r.upgrades.Items = components.ConvertUpgradeToListItems(r.upgradeUseCase.GetUpgrades())
 }
 
 func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
@@ -66,7 +99,7 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 	}
 
 	// Draw game information
-	r.display.DrawMoney(screen)
+	r.display.DrawMoney(screen, r.playerUseCase.GetPlayer())
 
 	// If popup is active, only draw it and return
 	if r.popup.IsActive() {

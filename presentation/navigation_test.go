@@ -1,4 +1,4 @@
-package components
+package presentation
 
 import (
 	"github.com/kmdkuk/clicker/domain/model"
@@ -59,7 +59,7 @@ var _ = Describe("Navigation", func() {
 		}
 
 		// Initialize navigation
-		nav = NewNavigation(gameStateMock)
+		nav = NewNavigation([]int{len(gameStateMock.GetBuildings()), len(gameStateMock.GetUpgrades())})
 	})
 
 	Describe("Initial state", func() {

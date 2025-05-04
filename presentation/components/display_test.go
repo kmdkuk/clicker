@@ -2,6 +2,7 @@ package components
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/kmdkuk/clicker/application/dto"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -9,16 +10,16 @@ import (
 var _ = Describe("Display", func() {
 	var (
 		display    *Display
-		gameState  *GameStateReaderMock
 		mockScreen *ebiten.Image
+		playerDTO  *dto.Player
 	)
 
 	BeforeEach(func() {
-		gameState = &GameStateReaderMock{
-			money:        123.45,
-			totalGenRate: 6.78,
+		playerDTO = &dto.Player{
+			Money:             123.45,
+			TotalGenerateRate: 6.78,
 		}
-		display = NewDisplay(gameState)
+		display = NewDisplay()
 		mockScreen = ebiten.NewImage(640, 480)
 	})
 
@@ -31,7 +32,7 @@ var _ = Describe("Display", func() {
 	Describe("DrawMoney", func() {
 		It("should not panic when drawing money information", func() {
 			Expect(func() {
-				display.DrawMoney(mockScreen)
+				display.DrawMoney(mockScreen, playerDTO)
 			}).NotTo(Panic())
 		})
 	})

@@ -1,7 +1,7 @@
 package components
 
 import (
-	"github.com/kmdkuk/clicker/domain/model"
+	"github.com/kmdkuk/clicker/application/dto"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	. "github.com/onsi/ginkgo/v2"
@@ -13,7 +13,7 @@ type MockListItem struct {
 	StringValue string
 }
 
-func (m *MockListItem) String(gameState model.GameStateReader) string {
+func (m *MockListItem) String() string {
 	return m.StringValue
 }
 
@@ -21,13 +21,11 @@ var _ = Describe("List", func() {
 	var (
 		list       *List
 		mockScreen *ebiten.Image
-		gameState  *GameStateReaderMock
 		items      []ListItem
 	)
 
 	BeforeEach(func() {
 		mockScreen = ebiten.NewImage(640, 480)
-		gameState = &GameStateReaderMock{}
 
 		items = []ListItem{
 			&MockListItem{StringValue: "Item 1"},
@@ -35,7 +33,8 @@ var _ = Describe("List", func() {
 			&MockListItem{StringValue: "Item 3"},
 		}
 
-		list = NewList(gameState, items, true, 10, 20)
+		list = NewList(true, 10, 20)
+		list.Items = items
 	})
 
 	Describe("NewList", func() {
@@ -68,7 +67,7 @@ var _ = Describe("List", func() {
 
 	Describe("ConvertBuildingToListItems", func() {
 		It("should convert a slice of buildings to list items", func() {
-			buildings := []model.Building{
+			buildings := []dto.Building{
 				{Name: "Building 1"},
 				{Name: "Building 2"},
 			}
@@ -80,7 +79,7 @@ var _ = Describe("List", func() {
 
 	Describe("ConvertUpgradeToListItems", func() {
 		It("should convert a slice of upgrades to list items", func() {
-			upgrades := []model.Upgrade{
+			upgrades := []dto.Upgrade{
 				{Name: "Upgrade 1"},
 				{Name: "Upgrade 2"},
 			}

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -120,33 +119,6 @@ var _ = Describe("Building", func() {
 		It("should return true when the building is unlocked", func() {
 			building.Count = 1
 			Expect(building.IsUnlocked()).To(BeTrue())
-		})
-	})
-
-	Describe("String", func() {
-		It("should return the correct string when locked", func() {
-			building.Count = 0
-			expected := "Test Building (Locked, Cost: $10.00, Count: 0, Generate Rate: $0.50/s)"
-			Expect(building.String(nil)).To(Equal(expected))
-		})
-
-		It("should return the correct string when unlocked", func() {
-			building.Count = 1
-			expected := "Test Building (Next Cost: $11.50, Count: 1, Generate Rate: $0.50/s)"
-			gameState := NewGameStateMock()
-			Expect(building.String(gameState)).To(Equal(expected))
-		})
-
-		It("should return the correct string when unlocked with multiple purchases", func() {
-			building.Count = 3
-			expectedCost := 10.0
-			for i := 0; i < building.Count; i++ {
-				expectedCost *= 1.15
-			}
-
-			expected := fmt.Sprintf("Test Building (Next Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)", expectedCost, building.Count, building.BaseGenerateRate*float64(building.Count))
-			gameState := NewGameStateMock()
-			Expect(building.String(gameState)).To(Equal(expected))
 		})
 	})
 

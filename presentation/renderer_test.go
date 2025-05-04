@@ -1,8 +1,8 @@
 package presentation
 
 import (
+	"github.com/kmdkuk/clicker/application/dto"
 	"github.com/kmdkuk/clicker/config"
-	"github.com/kmdkuk/clicker/domain/model"
 	"github.com/kmdkuk/clicker/presentation/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -10,80 +10,104 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// Mock for GameStateReader
-type mockGameStateReader struct {
-	money        float64
-	totalGenRate float64
-	manualWork   *model.ManualWork
-	buildings    []model.Building
-	upgrades     []model.Upgrade
+type MockPlayerUseCase struct {
+	player *dto.Player
 }
 
-// ManualWorkAction implements input.GameStateWriter.
-func (m *mockGameStateReader) ManualWorkAction() {
+func (m *MockPlayerUseCase) GetPlayer() *dto.Player {
+	return m.player
 }
 
-// PurchaseBuildingAction implements input.GameStateWriter.
-func (m *mockGameStateReader) PurchaseBuildingAction(cursor int) (bool, string) {
-	return false, ""
+type MockManualWorkUseCase struct {
+	ManualWorkActionCalled bool
+	manualWork             *dto.ManualWork
 }
 
-// PurchaseUpgradeAction implements input.GameStateWriter.
-func (m *mockGameStateReader) PurchaseUpgradeAction(cursor int) (bool, string) {
-	return false, ""
+func (m *MockManualWorkUseCase) ManualWorkAction() {
+	m.ManualWorkActionCalled = true
 }
-
-func (m *mockGameStateReader) GetMoney() float64 {
-	return m.money
-}
-
-func (m *mockGameStateReader) GetTotalGenerateRate() float64 {
-	return m.totalGenRate
-}
-
-func (m *mockGameStateReader) GetManualWork() *model.ManualWork {
+func (m *MockManualWorkUseCase) GetManualWork() *dto.ManualWork {
 	return m.manualWork
 }
 
-func (m *mockGameStateReader) GetBuildings() []model.Building {
-	return m.buildings
+type MockBuildingUseCase struct {
+	PurchaseBuildingActionCalled bool
+	buildings                    []dto.Building
 }
 
-func (m *mockGameStateReader) GetUpgrades() []model.Upgrade {
+func (m *MockBuildingUseCase) GetBuildings() []dto.Building {
+	return m.buildings
+}
+func (m *MockBuildingUseCase) PurchaseBuildingAction(index int) (bool, string) {
+	m.PurchaseBuildingActionCalled = true
+	return true, ""
+}
+
+type MockUpgradeUseCase struct {
+	PurchaseUpgradeActionCalled bool
+	upgrades                    []dto.Upgrade
+}
+
+func (m *MockUpgradeUseCase) GetUpgrades() []dto.Upgrade {
 	return m.upgrades
+}
+func (m *MockUpgradeUseCase) PurchaseUpgradeAction(index int) (bool, string) {
+	m.PurchaseUpgradeActionCalled = true
+	return true, ""
 }
 
 var _ = Describe("Renderer", func() {
 	var (
-		renderer   *DefaultRenderer
-		gameState  *mockGameStateReader
-		testConfig *config.Config
-		mockScreen *ebiten.Image
+		renderer          *DefaultRenderer
+		testConfig        *config.Config
+		mockScreen        *ebiten.Image
+		playerUseCase     *MockPlayerUseCase
+		manualWorkUseCase *MockManualWorkUseCase
+		buildingUseCase   *MockBuildingUseCase
+		upgradeUseCase    *MockUpgradeUseCase
 	)
 
 	BeforeEach(func() {
-		// Setup test GameState
-		gameState = &mockGameStateReader{
-			money:        100.0,
-			totalGenRate: 5.5,
-			manualWork:   &model.ManualWork{Name: "Manual Work: $1.0"},
-			buildings: []model.Building{
-				model.Building{Name: "Building 1: $10"},
-				model.Building{Name: "Building 2: $50"},
-			},
-			upgrades: []model.Upgrade{
-				model.Upgrade{Name: "Upgrade 1: $20"},
-				model.Upgrade{Name: "Upgrade 2: $100"},
-			},
-		}
-
 		// Setup test Config
 		testConfig = &config.Config{
 			EnableDebug: true,
 		}
 
+		playerUseCase = &MockPlayerUseCase{
+			player: &dto.Player{
+				Money:             100,
+				TotalGenerateRate: 10,
+			},
+		}
+
+		manualWorkUseCase = &MockManualWorkUseCase{
+			manualWork: &dto.ManualWork{
+				Name:  "Manual Work",
+				Value: 10,
+			},
+		}
+
+		buildingUseCase = &MockBuildingUseCase{
+			buildings: []dto.Building{
+				{Name: "Building 1: $10"},
+				{Name: "Building 2: $50"},
+			},
+		}
+
+		upgradeUseCase = &MockUpgradeUseCase{
+			upgrades: []dto.Upgrade{
+				{Name: "Upgrade 1: $20"},
+				{Name: "Upgrade 2: $100"},
+			},
+		}
+
 		// Create Renderer
-		renderer = NewRenderer(testConfig, gameState, input.NewDecider(gameState)).(*DefaultRenderer)
+		renderer = NewRenderer(testConfig,
+			playerUseCase,
+			manualWorkUseCase,
+			buildingUseCase,
+			upgradeUseCase,
+		).(*DefaultRenderer)
 
 		// Create mock screen
 		mockScreen = ebiten.NewImage(640, 480)
@@ -228,7 +252,7 @@ var _ = Describe("Renderer", func() {
 			It("should wrap cursor when reaching boundaries", func() {
 				// Move cursor up from top position (should wrap to bottom)
 				renderer.HandleInput(input.KeyTypeUp)
-				totalItems := len(gameState.GetBuildings()) + 1 // Manual work + buildings
+				totalItems := len(buildingUseCase.GetBuildings()) + 1 // Manual work + buildings
 				Expect(renderer.navigation.GetCursor()).To(Equal(totalItems - 1))
 			})
 
@@ -263,7 +287,7 @@ var _ = Describe("Renderer", func() {
 				renderer.HandleInput(input.KeyTypeLeft)
 
 				// Cursor should be validated within bounds of page 0
-				Expect(renderer.navigation.GetCursor()).To(BeNumerically("<=", len(gameState.GetBuildings())))
+				Expect(renderer.navigation.GetCursor()).To(BeNumerically("<=", len(buildingUseCase.GetBuildings())))
 			})
 		})
 	})

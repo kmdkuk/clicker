@@ -1,15 +1,13 @@
 package components
 
 import (
-	"log"
-
-	"github.com/kmdkuk/clicker/domain/model"
+	"github.com/kmdkuk/clicker/application/dto"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-func ConvertBuildingToListItems(buildings []model.Building) []ListItem {
+func ConvertBuildingToListItems(buildings []dto.Building) []ListItem {
 	items := make([]ListItem, len(buildings))
 	for i := range buildings {
 		items[i] = &buildings[i]
@@ -17,7 +15,7 @@ func ConvertBuildingToListItems(buildings []model.Building) []ListItem {
 	return items
 }
 
-func ConvertUpgradeToListItems(upgrades []model.Upgrade) []ListItem {
+func ConvertUpgradeToListItems(upgrades []dto.Upgrade) []ListItem {
 	items := make([]ListItem, len(upgrades))
 	for i := range upgrades {
 		items[i] = &upgrades[i]
@@ -26,32 +24,26 @@ func ConvertUpgradeToListItems(upgrades []model.Upgrade) []ListItem {
 }
 
 type ListItem interface {
-	String(gameState model.GameStateReader) string
+	String() string
 }
 
 type List struct {
-	gameState model.GameStateReader
-	Items     []ListItem
-	Visible   bool
-	x         int
-	y         int
+	Items   []ListItem
+	Visible bool
+	x       int
+	y       int
 }
 
-func NewList(gameState model.GameStateReader, items []ListItem, defaultVisible bool, x, y int) *List {
+func NewList(defaultVisible bool, x, y int) *List {
 	return &List{
-		gameState: gameState,
-		Items:     items,
-		Visible:   defaultVisible,
-		x:         x,
-		y:         y,
+		Items:   []ListItem{},
+		Visible: defaultVisible,
+		x:       x,
+		y:       y,
 	}
 }
 
 func (l *List) Draw(screen *ebiten.Image, cursor int) {
-	if l.gameState == nil {
-		log.Println("gameState is nil")
-		return
-	}
 	if !l.Visible {
 		return
 	}
@@ -59,9 +51,9 @@ func (l *List) Draw(screen *ebiten.Image, cursor int) {
 	for i, item := range l.Items {
 		y := l.y + i*20
 		if i == cursor {
-			ebitenutil.DebugPrintAt(screen, "> "+item.String(l.gameState), l.x, y)
+			ebitenutil.DebugPrintAt(screen, "> "+item.String(), l.x, y)
 		} else {
-			ebitenutil.DebugPrintAt(screen, "  "+item.String(l.gameState), l.x, y)
+			ebitenutil.DebugPrintAt(screen, "  "+item.String(), l.x, y)
 		}
 	}
 }

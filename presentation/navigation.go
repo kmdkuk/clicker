@@ -1,24 +1,23 @@
-package components
+package presentation
 
 import (
-	"github.com/kmdkuk/clicker/domain/model"
 	"github.com/kmdkuk/clicker/presentation/input"
 )
 
 // NavigationComponent handles cursor position and page management
 type Navigation struct {
-	gameState model.GameStateReader
-	cursor    int
-	page      int
-	maxPages  int
+	cursor     int
+	page       int
+	maxPages   int
+	totalItems []int
 }
 
-func NewNavigation(gameState model.GameStateReader) *Navigation {
+func NewNavigation(totalItems []int) *Navigation {
 	return &Navigation{
-		gameState: gameState,
-		cursor:    0,
-		page:      0,
-		maxPages:  2, // Total number of pages (currently fixed at 2)
+		cursor:     0,
+		page:       0,
+		maxPages:   2, // Total number of pages (currently fixed at 2)
+		totalItems: totalItems,
 	}
 }
 
@@ -49,10 +48,7 @@ func (n *Navigation) validateCursorPosition() {
 }
 
 func (n *Navigation) getTotalItems() int {
-	if n.page == 0 {
-		return len(n.gameState.GetBuildings()) + 1 // Manual Work + Buildings
-	}
-	return len(n.gameState.GetUpgrades()) + 1 // Manual Work + Upgrades
+	return n.totalItems[n.page] + 1
 }
 
 func (n *Navigation) GetCursor() int {

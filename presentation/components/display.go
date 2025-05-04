@@ -3,26 +3,22 @@ package components
 import (
 	"fmt"
 
-	"github.com/kmdkuk/clicker/domain/model"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/kmdkuk/clicker/application/dto"
 )
 
 // DisplayComponent shows basic game information
 type Display struct {
-	gameState model.GameStateReader
 }
 
-func NewDisplay(gameState model.GameStateReader) *Display {
-	return &Display{
-		gameState: gameState,
-	}
+func NewDisplay() *Display {
+	return &Display{}
 }
 
-func (d *Display) DrawMoney(screen *ebiten.Image) {
+func (d *Display) DrawMoney(screen *ebiten.Image, playerDTO *dto.Player) {
 	moneyText := fmt.Sprintf("Money: $%.2f (Total Generate Rate: $%.2f/s)",
-		d.gameState.GetMoney(),
-		d.gameState.GetTotalGenerateRate())
+		playerDTO.GetMoney(),
+		playerDTO.GetTotalGenerateRate())
 	ebitenutil.DebugPrintAt(screen, moneyText, 10, 10)
 }
