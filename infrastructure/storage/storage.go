@@ -189,7 +189,7 @@ func (s *DefaultStorage) recoverPartialState(data []byte) (state.GameState, erro
 	if err := unmarshalPartial(&partialSave.ManualWork, m, "manualWork"); err == nil {
 		if partialSave.ManualWork >= 0 {
 			gameState.ManualWork.Count = partialSave.ManualWork
-			fmt.Println("Partially recovered money from corrupted save manual Work: ", partialSave.ManualWork)
+			fmt.Println("Partially recovered manual work from corrupted save: ", partialSave.ManualWork)
 		}
 	}
 
