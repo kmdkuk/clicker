@@ -7,12 +7,10 @@ import (
 	"os"
 )
 
-const defaultSaveFileName = "game_state.json"
-
 func NewStorageDriver(key string) StorageDriver {
 	if key == "" {
 		return &DefaultStorageDriver{
-			path: defaultSaveFileName,
+			path: DefaultSaveKey,
 		}
 	}
 	return &DefaultStorageDriver{
@@ -29,4 +27,8 @@ func (s *DefaultStorageDriver) SaveData(data []byte) error {
 }
 func (s *DefaultStorageDriver) LoadData() ([]byte, error) {
 	return os.ReadFile(s.path)
+}
+
+func (s *DefaultStorageDriver) GetKeyName() string {
+	return s.path
 }

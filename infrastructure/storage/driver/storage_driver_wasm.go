@@ -23,8 +23,6 @@ type StorageWasm struct {
 	key string
 }
 
-const defaultSaveKey = "game_state.json"
-
 func (s *StorageWasm) SaveData(data []byte) error {
 	localStorage := js.Global().Get("localStorage")
 	if localStorage.IsUndefined() {
@@ -44,4 +42,8 @@ func (s *StorageWasm) LoadData() ([]byte, error) {
 		return nil, nil // Return nil if no data is found.
 	}
 	return []byte(data.String()), nil
+}
+
+func (s *StorageWasm) GetKeyName() string {
+	return s.key
 }
