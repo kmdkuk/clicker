@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/kmdkuk/clicker/domain/model"
+	"github.com/kmdkuk/clicker/game/level"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -85,6 +86,16 @@ func (m *MockGameState) SetUpgradesIsPurchased(index int, isPurchased bool) erro
 	}
 	m.Upgrades[index].IsPurchased = isPurchased
 	return nil
+}
+
+func (m *MockGameState) SetUpgradesIsPurchasedWithID(ID string, isPurchased bool) error {
+	for i, upgrade := range m.Upgrades {
+		if upgrade.ID == ID {
+			m.Upgrades[i].IsPurchased = isPurchased
+			return nil
+		}
+	}
+	return errors.New("upgrade with id not found")
 }
 
 func (m *MockGameState) SetManualWorkCount(count int) error {
@@ -170,7 +181,7 @@ var _ = Describe("DefaultStorage", func() {
 			Expect(save.Buildings).To(HaveLen(2))
 			Expect(save.Buildings[0]).To(Equal(5))
 			Expect(save.Upgradings).To(HaveLen(2))
-			Expect(save.Upgradings[0]).To(BeTrue())
+			Expect(save.Upgradings[0].IsPurchased).To(BeTrue())
 			Expect(save.ManualWork).To(Equal(10))
 		})
 
@@ -191,8 +202,15 @@ var _ = Describe("DefaultStorage", func() {
 				validSave := Save{
 					Money:     250.0,
 					Buildings: []int{7, 2},
-					Upgradings: []bool{
-						true,
+					Upgradings: []upgrade{
+						{
+							ID:          "0_0",
+							IsPurchased: true,
+						},
+						{
+							ID:          "0_1",
+							IsPurchased: false,
+						},
 					},
 					ManualWork: 15,
 				}
@@ -211,7 +229,7 @@ var _ = Describe("DefaultStorage", func() {
 				Expect(gameState.GetMoney()).To(Equal(250.0))
 				Expect(gameState.GetBuildings()[0].Count).To(Equal(7))
 				Expect(gameState.GetBuildings()[1].Count).To(Equal(2))
-				Expect(gameState.GetUpgrades()).To(HaveLen(1))
+				Expect(gameState.GetUpgrades()).To(HaveLen(len(level.NewUpgrades())))
 				Expect(gameState.GetUpgrades()[0].IsPurchased).To(BeTrue())
 				Expect(gameState.GetManualWork().Count).To(Equal(15))
 			})
