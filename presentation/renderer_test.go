@@ -31,8 +31,10 @@ func (m *MockManualWorkUseCase) GetManualWork() *dto.ManualWork {
 }
 
 type MockBuildingUseCase struct {
-	PurchaseBuildingActionCalled bool
-	buildings                    []dto.Building
+	PurchaseBuildingActionCalled  bool
+	buildings                     []dto.Building
+	successPurchaseBuildingAction bool
+	messagePurchaseBuildingAction string
 }
 
 func (m *MockBuildingUseCase) GetBuildings() []dto.Building {
@@ -40,12 +42,14 @@ func (m *MockBuildingUseCase) GetBuildings() []dto.Building {
 }
 func (m *MockBuildingUseCase) PurchaseBuildingAction(index int) (bool, string) {
 	m.PurchaseBuildingActionCalled = true
-	return true, ""
+	return m.successPurchaseBuildingAction, m.messagePurchaseBuildingAction
 }
 
 type MockUpgradeUseCase struct {
-	PurchaseUpgradeActionCalled bool
-	upgrades                    []dto.Upgrade
+	PurchaseUpgradeActionCalled  bool
+	upgrades                     []dto.Upgrade
+	successPurchaseUpgradeAction bool
+	messagePurchaseUpgradeAction string
 }
 
 func (m *MockUpgradeUseCase) GetUpgrades() []dto.Upgrade {
@@ -53,7 +57,7 @@ func (m *MockUpgradeUseCase) GetUpgrades() []dto.Upgrade {
 }
 func (m *MockUpgradeUseCase) PurchaseUpgradeAction(index int) (bool, string) {
 	m.PurchaseUpgradeActionCalled = true
-	return true, ""
+	return m.successPurchaseUpgradeAction, m.messagePurchaseUpgradeAction
 }
 
 var _ = Describe("Renderer", func() {
@@ -99,6 +103,8 @@ var _ = Describe("Renderer", func() {
 				{Name: "Upgrade 1: $20"},
 				{Name: "Upgrade 2: $100"},
 			},
+			successPurchaseUpgradeAction: true,
+			messagePurchaseUpgradeAction: "",
 		}
 
 		// Create Renderer
@@ -348,5 +354,27 @@ var _ = Describe("Renderer", func() {
 			renderer.HandleInput(input.KeyTypeDecision)
 			Expect(renderer.IsPopupActive()).To(BeFalse()) // Our mock returns empty string
 		})
+
+		It("should show popup with error message when purchase fails", func() {
+			// Override mock to return an error
+			buildingUseCase.successPurchaseBuildingAction = false
+			buildingUseCase.messagePurchaseBuildingAction = "Not enough money!"
+
+			renderer.navigation.cursor = 1
+			renderer.navigation.page = 0
+			renderer.handleDecision()
+			Expect(renderer.IsPopupActive()).To(BeTrue())
+			Expect(renderer.GetPopupMessage()).To(Equal("Not enough money!"))
+		})
+	})
+
+	It("should update item lists with data from use cases", func() {
+		// Setup test data and ensure renderer has old data
+		renderer.Update()
+
+		// Verify lists have been updated
+		Expect(renderer.manualWork.Items).To(HaveLen(1))
+		Expect(renderer.buildings.Items).To(HaveLen(len(buildingUseCase.buildings)))
+		Expect(renderer.upgrades.Items).To(HaveLen(len(upgradeUseCase.upgrades)))
 	})
 })

@@ -79,14 +79,18 @@ var _ = Describe("Decider", func() {
 			ManualWorkActionCalled: false,
 		}
 		buildingUseCase = &MockBuildingUseCase{
-			PurchaseBuildingActionCalled: false,
+			PurchaseBuildingActionCalled:  false,
+			successPurchaseBuildingAction: true,
+			messagePurchaseBuildingAction: "",
 			buildings: []dto.Building{
 				{Name: "Building 1"},
 				{Name: "Building 2"},
 			},
 		}
 		upgradeUseCase = &MockUpgradeUseCase{
-			PurchaseUpgradeActionCalled: false,
+			PurchaseUpgradeActionCalled:  false,
+			successPurchaseUpgradeAction: true,
+			messagePurchaseUpgradeAction: "",
 		}
 		decider = NewDecider(
 			manualWorkUseCase,
