@@ -43,6 +43,7 @@ func (s *DefaultStorage) SaveGameState(state state.GameState) error {
 			// Log the error but continue with the save
 			fmt.Printf("Warning: Failed to create backup: %v\n", err)
 		}
+		s.haveOccuredLoadError = false
 	}
 
 	return s.storageDriver.SaveData(data)
@@ -92,7 +93,16 @@ func (s *DefaultStorage) LoadGameState() (state.GameState, error) {
 			return &state.DefaultGameState{}, fmt.Errorf("cannot recover data: %w", recoverErr)
 		}
 		recoveredSave.merge(oldSaveConverted)
-		return recoveredSave.ConvertToGameState()
+		gameState, err := recoveredSave.ConvertToGameState()
+		if err != nil {
+			s.haveOccuredLoadError = true
+			return &state.DefaultGameState{}, fmt.Errorf("failed to convert recovered save: %w", err)
+		}
+		// Auto-save the fixed state
+		if err := s.SaveGameState(gameState); err != nil {
+			fmt.Printf("Warning: Failed to save fixed state: %v\n", err)
+		}
+		return gameState, nil
 	}
 
 	// Validate the save data
@@ -121,7 +131,6 @@ func (s *DefaultStorage) LoadGameState() (state.GameState, error) {
 
 	// Auto-save the fixed state
 	if err := s.SaveGameState(gameState); err != nil {
-		s.haveOccuredLoadError = true
 		fmt.Printf("Warning: Failed to save fixed state: %v\n", err)
 	}
 
