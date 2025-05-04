@@ -7,6 +7,13 @@ import (
 	"github.com/kmdkuk/clicker/infrastructure/state"
 )
 
+type oldSave struct {
+	Money      float64   `json:"Money"`
+	Buildings  []int     `json:"Buildings"`
+	Upgradings []upgrade `json:"Upgradings"`
+	ManualWork int       `json:"ManualWork"`
+}
+
 type Save struct {
 	Money      float64   `json:"money"`
 	Buildings  []int     `json:"buildings"`
