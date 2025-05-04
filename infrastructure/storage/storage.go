@@ -168,7 +168,7 @@ func (s *DefaultStorage) recoverPartialState(data []byte) (state.GameState, erro
 				// Only copy valid count values
 				if building >= 0 {
 					gameState.Buildings[i].Count = building
-					fmt.Println("Partially recovered money from corrupted save buildings [", i, "]: ", building)
+					fmt.Println("Partially recovered buildings count from corrupted save [", i, "]: ", building)
 				}
 			}
 		}
