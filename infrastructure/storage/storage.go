@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/kmdkuk/clicker/config"
 	"github.com/kmdkuk/clicker/infrastructure/state"
 	"github.com/kmdkuk/clicker/infrastructure/storage/driver"
 )
@@ -127,7 +128,7 @@ func (s *DefaultStorage) createBackup() error {
 func (s *DefaultStorage) backupRawData(data []byte) error {
 	baseFilename := s.storageDriver.GetKeyName()
 	if baseFilename == "" {
-		baseFilename = driver.DefaultSaveKey
+		baseFilename = config.DefaultSaveKey
 	}
 
 	timestamp := time.Now().Format("20060102-150405")

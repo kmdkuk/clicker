@@ -5,12 +5,14 @@ package driver
 
 import (
 	"os"
+
+	"github.com/kmdkuk/clicker/config"
 )
 
 func NewStorageDriver(key string) StorageDriver {
 	if key == "" {
 		return &DefaultStorageDriver{
-			path: DefaultSaveKey,
+			path: config.DefaultSaveKey,
 		}
 	}
 	return &DefaultStorageDriver{

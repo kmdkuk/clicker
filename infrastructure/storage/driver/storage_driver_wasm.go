@@ -6,12 +6,14 @@ package driver
 import (
 	"errors"
 	"syscall/js"
+
+	"github.com/kmdkuk/clicker/config"
 )
 
 func NewStorageDriver(key string) StorageDriver {
 	if key == "" {
 		return &StorageWasm{
-			key: defaultSaveKey,
+			key: config.DefaultSaveKey,
 		}
 	}
 	return &StorageWasm{
