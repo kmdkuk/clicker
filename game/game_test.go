@@ -68,6 +68,11 @@ func (m *mockGameState) SetUpgradesIsPurchased(upgradeIndex int, isPurchased boo
 	panic("unimplemented")
 }
 
+// SetupgradesIsPurchasedWithID implements state.GameState.
+func (m *mockGameState) SetUpgradesIsPurchasedWithID(ID string, isPurchased bool) error {
+	panic("unimplemented")
+}
+
 // UpdateMoney implements state.GameState.
 func (m *mockGameState) UpdateMoney(amount float64) {
 	panic("unimplemented")

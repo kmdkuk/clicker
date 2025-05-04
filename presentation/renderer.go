@@ -35,11 +35,13 @@ type ManualWorkUseCase interface {
 type BuildingUseCase interface {
 	PurchaseBuildingAction(cursor int) (bool, string)
 	GetBuildings() []dto.Building
+	GetBuildingsIsUnlockedWithMaskedNextLock() []dto.Building
 }
 
 type UpgradeUseCase interface {
 	PurchaseUpgradeAction(cursor int) (bool, string)
 	GetUpgrades() []dto.Upgrade
+	GetUpgradesIsReleasedCostSorted() []dto.Upgrade
 }
 
 type DefaultRenderer struct {
@@ -86,8 +88,13 @@ func (r *DefaultRenderer) Update() {
 	r.manualWork.Items = []components.ListItem{
 		r.manualWorkUseCase.GetManualWork(),
 	}
-	r.buildings.Items = components.ConvertBuildingToListItems(r.buildingUseCase.GetBuildings())
-	r.upgrades.Items = components.ConvertUpgradeToListItems(r.upgradeUseCase.GetUpgrades())
+	r.buildings.Items = components.ConvertBuildingToListItems(r.buildingUseCase.GetBuildingsIsUnlockedWithMaskedNextLock())
+	r.upgrades.Items = components.ConvertUpgradeToListItems(r.upgradeUseCase.GetUpgradesIsReleasedCostSorted())
+
+	r.navigation.totalItems = []int{
+		len(r.buildings.Items),
+		len(r.upgrades.Items),
+	}
 }
 
 func (r *DefaultRenderer) Draw(screen *ebiten.Image) {

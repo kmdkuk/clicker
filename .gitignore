@@ -28,5 +28,6 @@ bin/
 coverage.html
 
 game_state.json
+game_state.json*
 
 .vscode/

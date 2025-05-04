@@ -7,23 +7,36 @@ import (
 	"github.com/kmdkuk/clicker/infrastructure/state"
 )
 
+type oldSave struct {
+	Money      float64   `json:"Money"`
+	Buildings  []int     `json:"Buildings"`
+	Upgradings []upgrade `json:"Upgradings"`
+	ManualWork int       `json:"ManualWork"`
+}
+
 type Save struct {
-	Money      float64
-	Buildings  []int
-	Upgradings []bool
-	ManualWork int
+	Money      float64   `json:"money"`
+	Buildings  []int     `json:"buildings"`
+	Upgradings []upgrade `json:"upgradings"`
+	ManualWork int       `json:"manual_work"`
+}
+
+type upgrade struct {
+	ID          string `json:"id"`
+	IsPurchased bool   `json:"is_purchased"`
 }
 
 func ConverToSave(gameState state.GameState) Save {
 	buildings := make([]int, len(gameState.GetBuildings()))
-	upgradings := make([]bool, len(gameState.GetUpgrades()))
+	upgradings := make([]upgrade, len(gameState.GetUpgrades()))
 
 	for i, b := range gameState.GetBuildings() {
 		buildings[i] = b.Count
 	}
 
 	for i, u := range gameState.GetUpgrades() {
-		upgradings[i] = u.IsPurchased
+		upgradings[i].ID = u.ID
+		upgradings[i].IsPurchased = u.IsPurchased
 	}
 
 	return Save{
@@ -45,8 +58,8 @@ func (s *Save) ConvertToGameState() (state.GameState, error) {
 			return gameState, err
 		}
 	}
-	for i, u := range s.Upgradings {
-		if err := gameState.SetUpgradesIsPurchased(i, u); err != nil {
+	for _, u := range s.Upgradings {
+		if err := gameState.SetUpgradesIsPurchasedWithID(u.ID, u.IsPurchased); err != nil {
 			return gameState, err
 		}
 	}

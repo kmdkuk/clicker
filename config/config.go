@@ -15,4 +15,5 @@ func NewConfig() *Config {
 
 const (
 	DefaultSaveKey string = "game_state.json"
+	CostMultiplier        = 1.15
 )
