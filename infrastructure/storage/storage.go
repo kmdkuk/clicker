@@ -180,7 +180,7 @@ func (s *DefaultStorage) recoverPartialState(data []byte) (state.GameState, erro
 		for i, isPurchased := range partialSave.Upgradings {
 			if i < len(gameState.Upgrades) {
 				gameState.Upgrades[i].IsPurchased = isPurchased
-				fmt.Println("Partially recovered money from corrupted save upgradings [", i, "]: ", isPurchased)
+				fmt.Println("Partially recovered upgradings from corrupted save [", i, "]: ", isPurchased)
 			}
 		}
 	}
