@@ -88,26 +88,30 @@ var _ = Describe("UpgradeUseCase", func() {
 			Money: 100.0,
 			Upgrades: []model.Upgrade{
 				{
+					ID:          "0",
 					Name:        "Basic Upgrade",
 					Cost:        50.0,
 					IsPurchased: false,
 					IsReleased:  func(_ model.GameStateReader) bool { return true },
 				},
 				{
+					ID:          "1",
 					Name:        "Premium Upgrade",
 					Cost:        150.0,
 					IsPurchased: false,
 					IsReleased:  func(_ model.GameStateReader) bool { return true },
 				},
 				{
+					ID:          "2",
 					Name:        "Limited Upgrade",
-					Cost:        30.0,
+					Cost:        200.0,
 					IsPurchased: false,
-					IsReleased:  func(_ model.GameStateReader) bool { return false },
+					IsReleased:  func(_ model.GameStateReader) bool { return true },
 				},
 				{
+					ID:          "3",
 					Name:        "Purchased Upgrade",
-					Cost:        20.0,
+					Cost:        300.0,
 					IsPurchased: true,
 					IsReleased:  func(_ model.GameStateReader) bool { return true },
 				},
@@ -168,14 +172,6 @@ var _ = Describe("UpgradeUseCase", func() {
 
 				Expect(success).To(BeFalse())
 				Expect(message).To(Equal("Upgrade already purchased!"))
-				Expect(mockGameState.SetUpgradeCallCount).To(Equal(0))
-			})
-
-			It("should fail when trying to purchase an unreleased upgrade", func() {
-				success, message := upgradeUseCase.PurchaseUpgradeAction(2)
-
-				Expect(success).To(BeFalse())
-				Expect(message).To(Equal("Upgrade not available yet!"))
 				Expect(mockGameState.SetUpgradeCallCount).To(Equal(0))
 			})
 
@@ -376,6 +372,83 @@ var _ = Describe("UpgradeUseCase", func() {
 			sortedUpgrades := upgradeUseCase.GetUpgradesIsReleasedCostSorted()
 			Expect(sortedUpgrades).To(HaveLen(1))
 			Expect(sortedUpgrades[0].Name).To(Equal("Dynamic Upgrade"))
+		})
+	})
+
+	Describe("PurchaseUpgradeAction with filtered upgrades", func() {
+		// フィルタリングしたアップグレードリストとオリジナルのリストの不一致を検証するテスト
+		var (
+			mockGameState    *MockGameState
+			upgradeUseCase   *usecase.UpgradeUseCase
+			originalUpgrades []model.Upgrade
+		)
+
+		BeforeEach(func() {
+			// オリジナルのアップグレードリスト（フィルタリング前）
+			originalUpgrades = []model.Upgrade{
+				{ // インデックス0
+					ID:          "0",
+					Name:        "Hidden Upgrade 1",
+					Cost:        10,
+					IsPurchased: false,
+					IsReleased:  func(_ model.GameStateReader) bool { return false }, // 非表示
+				},
+				{ // インデックス1
+					ID:          "1",
+					Name:        "First Visible Upgrade",
+					Cost:        20,
+					IsPurchased: false,
+					IsReleased:  func(_ model.GameStateReader) bool { return true }, // 表示
+				},
+				{ // インデックス2
+					ID:          "2",
+					Name:        "Hidden Upgrade 2",
+					Cost:        30,
+					IsPurchased: false,
+					IsReleased:  func(_ model.GameStateReader) bool { return false }, // 非表示
+				},
+				{ // インデックス3
+					ID:          "3",
+					Name:        "Second Visible Upgrade",
+					Cost:        40,
+					IsPurchased: false,
+					IsReleased:  func(_ model.GameStateReader) bool { return true }, // 表示
+				},
+				{ // インデックス4
+					ID:          "4",
+					Name:        "Third Visible Upgrade",
+					Cost:        50,
+					IsPurchased: false,
+					IsReleased:  func(_ model.GameStateReader) bool { return true }, // 表示
+				},
+			}
+
+			mockGameState = &MockGameState{
+				Money:    100.0, // 十分な資金
+				Upgrades: originalUpgrades,
+			}
+			upgradeUseCase = usecase.NewUpgradeUseCase(mockGameState)
+		})
+
+		Context("when using cursor from filtered list", func() {
+			It("should purchase to purchase intended upgrade", func() {
+				filteredUpgrades := upgradeUseCase.GetUpgradesIsReleasedCostSorted()
+				Expect(filteredUpgrades).To(HaveLen(3))
+				Expect(filteredUpgrades[0].Name).To(Equal("First Visible Upgrade"))
+				Expect(filteredUpgrades[1].Name).To(Equal("Second Visible Upgrade"))
+				Expect(filteredUpgrades[2].Name).To(Equal("Third Visible Upgrade"))
+
+				actualIndex := 3
+				Expect(mockGameState.Upgrades[actualIndex].IsPurchased).To(BeFalse())
+
+				uiCursor := 1 // 0-indexed
+				success, _ := upgradeUseCase.PurchaseUpgradeAction(uiCursor)
+
+				Expect(success).To(BeTrue())
+				intendedUpgrade := mockGameState.Upgrades[actualIndex]
+				Expect(intendedUpgrade.Name).To(Equal("Second Visible Upgrade"))
+				Expect(intendedUpgrade.IsPurchased).To(BeTrue())
+			})
 		})
 	})
 })

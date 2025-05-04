@@ -3,6 +3,7 @@ package dto
 import "fmt"
 
 type Upgrade struct {
+	ID          string
 	Name        string
 	IsPurchased bool
 	IsReleased  bool
