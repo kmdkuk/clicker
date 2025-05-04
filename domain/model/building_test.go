@@ -79,7 +79,7 @@ func NewGameStateMock() *GameStateMock {
 
 func newBuilding() *Building {
 	return &Building{
-		ID:               1,
+		ID:               0,
 		Name:             "Test Building",
 		BaseCost:         10.0,
 		BaseGenerateRate: 0.5,
@@ -88,9 +88,10 @@ func newBuilding() *Building {
 }
 
 var _ = Describe("Building", func() {
-	building := newBuilding()
+	var building *Building
 
 	BeforeEach(func() {
+		building = newBuilding()
 	})
 
 	Describe("Cost", func() {
@@ -144,11 +145,26 @@ var _ = Describe("Building", func() {
 		It("should calculate the correct total generate rate with upgrades", func() {
 			building.Count = 2
 			upgrades := []Upgrade{
-				{IsTargetManualWork: false, TargetBuilding: 1, IsPurchased: true, Effect: func(rate float64) float64 {
-					return rate * 1.5
-				}},
+				{
+					Name:               "Upgrade 1",
+					IsTargetManualWork: false,
+					TargetBuilding:     0,
+					IsPurchased:        true,
+					Effect: func(rate float64) float64 {
+						return rate * 1.1
+					},
+				},
+				{
+					Name:               "Upgrade 1",
+					IsTargetManualWork: false,
+					TargetBuilding:     1,
+					IsPurchased:        true,
+					Effect: func(rate float64) float64 {
+						return rate * 1.5
+					},
+				},
 			}
-			Expect(building.TotalGenerateRate(upgrades)).To(BeNumerically("~", 0.5*1.5*2, 0.00001))
+			Expect(building.TotalGenerateRate(upgrades)).To(BeNumerically("~", 0.5*1.1*2, 0.00001))
 		})
 	})
 })

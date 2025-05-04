@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"log"
-
 	"github.com/kmdkuk/clicker/application/dto"
 	"github.com/kmdkuk/clicker/infrastructure/state"
 )
@@ -29,8 +27,4 @@ func (m *ManualWorkUseCase) GetManualWork() *dto.ManualWork {
 // ManualWorkAction implements presentation.ManualWorkUseCase.
 func (m *ManualWorkUseCase) ManualWorkAction() {
 	m.gameState.UpdateMoney(m.gameState.GetManualWork().Work(m.gameState.GetUpgrades()))
-	if err := m.gameState.SetManualWorkCount(m.gameState.GetManualWork().Count + 1); err != nil {
-		log.Printf("Failed to update manual work count: %v", err)
-		return
-	}
 }
