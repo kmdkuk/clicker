@@ -34,11 +34,12 @@ func (b *BuildingUseCase) GetBuildings() []dto.Building {
 }
 
 func (b *BuildingUseCase) PurchaseBuildingAction(buildingIndex int) (bool, string) {
-	if buildingIndex < 0 || buildingIndex >= len(b.gameState.GetBuildings()) {
+	buildings := b.gameState.GetBuildings()
+	if buildingIndex < 0 || buildingIndex >= len(buildings) {
 		return false, "Invalid building selection!"
 	}
 
-	building := &b.gameState.GetBuildings()[buildingIndex]
+	building := &buildings[buildingIndex]
 	cost := building.Cost()
 
 	if b.gameState.GetMoney() < cost {

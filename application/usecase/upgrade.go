@@ -29,11 +29,12 @@ func (u *UpgradeUseCase) GetUpgrades() []dto.Upgrade {
 }
 
 func (u *UpgradeUseCase) PurchaseUpgradeAction(upgradeIndex int) (bool, string) {
-	if upgradeIndex < 0 || upgradeIndex >= len(u.gameState.GetUpgrades()) {
+	upgrades := u.gameState.GetUpgrades()
+	if upgradeIndex < 0 || upgradeIndex >= len(upgrades) {
 		return false, "Invalid upgrade selection!"
 	}
 
-	upgrade := &u.gameState.GetUpgrades()[upgradeIndex]
+	upgrade := &upgrades[upgradeIndex]
 
 	if upgrade.IsPurchased {
 		return false, "Upgrade already purchased!"
