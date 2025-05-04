@@ -1,0 +1,24 @@
+package dto
+
+import "fmt"
+
+type Upgrade struct {
+	Name        string
+	IsPurchased bool
+	IsReleased  bool
+	Cost        float64
+}
+
+func (u *Upgrade) String() string {
+	if u.IsPurchased {
+		return u.Name + " (Purchased)"
+	}
+	if u.IsReleased {
+		return u.Name + " (Selling Cost: $" + fmt.Sprintf("%.2f", u.Cost) + ")"
+	}
+	return u.Name + " (Locked Cost: $" + fmt.Sprintf("%.2f", u.Cost) + ")"
+}
+
+func (u *Upgrade) GetName() string {
+	return u.Name
+}

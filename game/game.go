@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/kmdkuk/clicker/config"
-	"github.com/kmdkuk/clicker/input"
-	"github.com/kmdkuk/clicker/state"
-	"github.com/kmdkuk/clicker/ui"
+	"github.com/kmdkuk/clicker/infrastructure/state"
+	"github.com/kmdkuk/clicker/infrastructure/storage"
+	"github.com/kmdkuk/clicker/presentation"
+	"github.com/kmdkuk/clicker/presentation/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -16,12 +17,12 @@ import (
 type Game struct {
 	config       *config.Config  // Game configuration
 	gameState    state.GameState // Game state
-	storage      state.Storage
-	inputHandler input.Handler // Handler to manage input processing
-	renderer     ui.Renderer   // Update Renderer to use the ui package
+	storage      storage.Storage
+	inputHandler input.Handler         // Handler to manage input processing
+	renderer     presentation.Renderer // Update Renderer to use the presentation package
 }
 
-func NewGame(c *config.Config, gameState state.GameState, storage state.Storage, renderer ui.Renderer, inputHandler input.Handler) *Game {
+func NewGame(c *config.Config, gameState state.GameState, storage storage.Storage, renderer presentation.Renderer, inputHandler input.Handler) *Game {
 	return &Game{
 		config:       c,
 		gameState:    gameState,
@@ -58,6 +59,8 @@ func (g *Game) Update() error {
 
 	// Update game state
 	g.renderer.HandleInput(g.inputHandler.GetPressedKey())
+
+	g.renderer.Update()
 
 	return nil
 }

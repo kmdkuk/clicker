@@ -4,11 +4,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/kmdkuk/clicker/application/usecase"
 	"github.com/kmdkuk/clicker/config"
 	"github.com/kmdkuk/clicker/game"
-	"github.com/kmdkuk/clicker/input"
-	"github.com/kmdkuk/clicker/state"
-	"github.com/kmdkuk/clicker/ui"
+	"github.com/kmdkuk/clicker/infrastructure/state"
+	"github.com/kmdkuk/clicker/infrastructure/storage"
+	"github.com/kmdkuk/clicker/infrastructure/storage/driver"
+	"github.com/kmdkuk/clicker/presentation"
+	"github.com/kmdkuk/clicker/presentation/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	flag "github.com/spf13/pflag"
@@ -20,12 +23,18 @@ func main() {
 	flag.BoolVarP(&cfg.EnableDebug, "debug", "d", false, "Enable debug mode")
 	flag.Parse()
 	gameState := state.NewGameState()
-	storage := state.NewDefaultStorage(state.NewStorageDriver(config.DefaultSaveKey))
+	storage := storage.NewDefaultStorage(driver.NewStorageDriver(config.DefaultSaveKey))
 	if state, err := storage.LoadGameState(); err == nil {
 		gameState = state
 	}
+	renderer := presentation.NewRenderer(
+		cfg,
+		usecase.NewPlayerUsecase(gameState),
+		usecase.NewManualWorkUseCase(gameState),
+		usecase.NewBuildingUseCase(gameState),
+		usecase.NewUpgradeUseCase(gameState),
+	)
 	inputHandler := input.NewHandler()
-	renderer := ui.NewRenderer(cfg, gameState, input.NewDecider(gameState))
 	g := game.NewGame(
 		cfg,
 		gameState,
