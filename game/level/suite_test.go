@@ -1,4 +1,4 @@
-package presentation
+package level
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestPresentation(t *testing.T) {
+func TestLevel(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Presentation Suite")
+	RunSpecs(t, "Level Suite")
 }

@@ -35,7 +35,7 @@ type ManualWorkUseCase interface {
 type BuildingUseCase interface {
 	PurchaseBuildingAction(cursor int) (bool, string)
 	GetBuildings() []dto.Building
-	GetBuildingsIsUnlockedWithNextLock() []dto.Building
+	GetBuildingsIsUnlockedWithMaskedNextLock() []dto.Building
 }
 
 type UpgradeUseCase interface {
@@ -88,7 +88,7 @@ func (r *DefaultRenderer) Update() {
 	r.manualWork.Items = []components.ListItem{
 		r.manualWorkUseCase.GetManualWork(),
 	}
-	r.buildings.Items = components.ConvertBuildingToListItems(r.buildingUseCase.GetBuildingsIsUnlockedWithNextLock())
+	r.buildings.Items = components.ConvertBuildingToListItems(r.buildingUseCase.GetBuildingsIsUnlockedWithMaskedNextLock())
 	r.upgrades.Items = components.ConvertUpgradeToListItems(r.upgradeUseCase.GetUpgradesIsReleasedCostSorted())
 
 	r.navigation.totalItems = []int{

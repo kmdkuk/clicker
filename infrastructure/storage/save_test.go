@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/kmdkuk/clicker/game/level"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -14,7 +15,7 @@ var _ = Describe("Save", func() {
 			Buildings: []int{1, 2, 3},
 			Upgradings: []upgrade{
 				{
-					ID:          "upgrade1",
+					ID:          "0_0",
 					IsPurchased: true,
 				},
 			},
@@ -33,25 +34,29 @@ var _ = Describe("Save", func() {
 		})
 
 		It("should return false if Buildings length is invalid", func() {
-			save.Buildings = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+			var buildings []int
+			for range level.NewBuildings() {
+				buildings = append(buildings, 0)
+			}
+			buildings = append(buildings, 0)
+			save.Buildings = buildings
 			Expect(save.Validation()).To(HaveOccurred())
 		})
 
 		It("should return false if Upgradings length is invalid", func() {
-			save.Upgradings = []upgrade{
-				{
-					ID:          "upgrade1",
-					IsPurchased: true,
-				},
-				{
-					ID:          "upgrade2",
+			us := level.NewUpgrades()
+			var upgrades []upgrade
+			for _, u := range us {
+				upgrades = append(upgrades, upgrade{
+					ID:          u.ID,
 					IsPurchased: false,
-				},
-				{
-					ID:          "upgrade3",
-					IsPurchased: true,
-				},
+				})
 			}
+			upgrades = append(upgrades, upgrade{
+				ID:          "invalid_upgrade",
+				IsPurchased: true,
+			})
+			save.Upgradings = upgrades
 			Expect(save.Validation()).To(HaveOccurred())
 		})
 
@@ -85,15 +90,15 @@ var _ = Describe("Save", func() {
 		It("should return an error if setting Upgradings fails", func() {
 			save.Upgradings = []upgrade{
 				{
-					ID:          "upgrade1",
+					ID:          "0_0",
 					IsPurchased: true,
 				},
 				{
-					ID:          "upgrade2",
+					ID:          "0_1",
 					IsPurchased: false,
 				},
 				{
-					ID:          "upgrade3",
+					ID:          "1_0",
 					IsPurchased: true,
 				},
 				{

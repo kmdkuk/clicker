@@ -214,4 +214,168 @@ var _ = Describe("UpgradeUseCase", func() {
 			})
 		})
 	})
+
+	Describe("GetUpgradesIsReleasedCostSorted", func() {
+		Context("when upgrades exist in different release states", func() {
+			BeforeEach(func() {
+				mockGameState.Upgrades = []model.Upgrade{
+					{
+						Name:        "Mid Cost Released",
+						Cost:        50.0,
+						IsPurchased: false,
+						IsReleased:  func(_ model.GameStateReader) bool { return true },
+					},
+					{
+						Name:        "High Cost Released",
+						Cost:        100.0,
+						IsPurchased: false,
+						IsReleased:  func(_ model.GameStateReader) bool { return true },
+					},
+					{
+						Name:        "Low Cost Released",
+						Cost:        25.0,
+						IsPurchased: false,
+						IsReleased:  func(_ model.GameStateReader) bool { return true },
+					},
+					{
+						Name:        "Lowest Cost Unreleased",
+						Cost:        10.0,
+						IsPurchased: false,
+						IsReleased:  func(_ model.GameStateReader) bool { return false },
+					},
+					{
+						Name:        "Highest Cost Released",
+						Cost:        200.0,
+						IsPurchased: true,
+						IsReleased:  func(_ model.GameStateReader) bool { return true },
+					},
+				}
+				upgradeUseCase = usecase.NewUpgradeUseCase(mockGameState)
+			})
+
+			It("should return only released upgrades", func() {
+				upgrades := upgradeUseCase.GetUpgradesIsReleasedCostSorted()
+
+				// Check we only get released upgrades
+				Expect(upgrades).To(HaveLen(4))
+				for _, upgrade := range upgrades {
+					Expect(upgrade.IsReleased).To(BeTrue())
+				}
+
+				// Verify unreleased upgrades are filtered out
+				found := false
+				for _, upgrade := range upgrades {
+					if upgrade.Name == "Lowest Cost Unreleased" {
+						found = true
+					}
+				}
+				Expect(found).To(BeFalse(), "Unreleased upgrades should be filtered out")
+			})
+
+			It("should sort upgrades by cost in ascending order", func() {
+				upgrades := upgradeUseCase.GetUpgradesIsReleasedCostSorted()
+
+				// Check sorting
+				Expect(upgrades).To(HaveLen(4))
+				for i := 0; i < len(upgrades)-1; i++ {
+					Expect(upgrades[i].Cost).To(BeNumerically("<=", upgrades[i+1].Cost),
+						"Upgrades should be sorted by cost in ascending order")
+				}
+
+				// Verify exact order
+				Expect(upgrades[0].Name).To(Equal("Low Cost Released"), "Lowest cost should be first")
+				Expect(upgrades[3].Name).To(Equal("Highest Cost Released"), "Highest cost should be last")
+			})
+		})
+
+		Context("when all upgrades are unreleased", func() {
+			BeforeEach(func() {
+				mockGameState.Upgrades = []model.Upgrade{
+					{
+						Name:       "Unreleased 1",
+						Cost:       50.0,
+						IsReleased: func(_ model.GameStateReader) bool { return false },
+					},
+					{
+						Name:       "Unreleased 2",
+						Cost:       20.0,
+						IsReleased: func(_ model.GameStateReader) bool { return false },
+					},
+				}
+				upgradeUseCase = usecase.NewUpgradeUseCase(mockGameState)
+			})
+
+			It("should return an empty slice", func() {
+				upgrades := upgradeUseCase.GetUpgradesIsReleasedCostSorted()
+				Expect(upgrades).To(BeEmpty())
+			})
+		})
+	})
+
+	Context("edge cases for purchasing upgrades", func() {
+		It("should succeed when money is exactly equal to upgrade cost", func() {
+			// Set money to exactly the upgrade cost
+			mockGameState.Money = mockGameState.Upgrades[0].Cost
+
+			success, message := upgradeUseCase.PurchaseUpgradeAction(0)
+
+			Expect(success).To(BeTrue())
+			Expect(message).To(Equal("Upgrade purchased successfully!"))
+			Expect(mockGameState.Money).To(Equal(float64(0)))
+		})
+
+		It("should maintain unchanged state when purchase fails", func() {
+			originalMoney := mockGameState.Money
+			originalUpgradeState := make([]bool, len(mockGameState.Upgrades))
+			for i, upgrade := range mockGameState.Upgrades {
+				originalUpgradeState[i] = upgrade.IsPurchased
+			}
+
+			// Attempt to purchase unavailable upgrade
+			upgradeUseCase.PurchaseUpgradeAction(2)
+
+			// Verify state remains unchanged
+			Expect(mockGameState.Money).To(Equal(originalMoney))
+			for i, upgrade := range mockGameState.Upgrades {
+				Expect(upgrade.IsPurchased).To(Equal(originalUpgradeState[i]))
+			}
+		})
+	})
+
+	Context("when upgrade release status changes", func() {
+		var dynamicReleaseStatus bool
+
+		BeforeEach(func() {
+			dynamicReleaseStatus = false
+			mockGameState.Upgrades = []model.Upgrade{
+				{
+					Name:        "Dynamic Upgrade",
+					Cost:        30.0,
+					IsPurchased: false,
+					IsReleased: func(_ model.GameStateReader) bool {
+						return dynamicReleaseStatus
+					},
+				},
+			}
+			upgradeUseCase = usecase.NewUpgradeUseCase(mockGameState)
+		})
+
+		It("should reflect changes in release status", func() {
+			// Initially not released
+			upgrades := upgradeUseCase.GetUpgrades()
+			Expect(upgrades[0].IsReleased).To(BeFalse())
+
+			// Change release status
+			dynamicReleaseStatus = true
+
+			// Should now be released
+			upgrades = upgradeUseCase.GetUpgrades()
+			Expect(upgrades[0].IsReleased).To(BeTrue())
+
+			// Should also appear in sorted released upgrades
+			sortedUpgrades := upgradeUseCase.GetUpgradesIsReleasedCostSorted()
+			Expect(sortedUpgrades).To(HaveLen(1))
+			Expect(sortedUpgrades[0].Name).To(Equal("Dynamic Upgrade"))
+		})
+	})
 })

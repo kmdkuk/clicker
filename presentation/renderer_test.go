@@ -40,6 +40,9 @@ type MockBuildingUseCase struct {
 func (m *MockBuildingUseCase) GetBuildings() []dto.Building {
 	return m.buildings
 }
+func (m *MockBuildingUseCase) GetBuildingsIsUnlockedWithMaskedNextLock() []dto.Building {
+	return m.buildings
+}
 func (m *MockBuildingUseCase) PurchaseBuildingAction(index int) (bool, string) {
 	m.PurchaseBuildingActionCalled = true
 	return m.successPurchaseBuildingAction, m.messagePurchaseBuildingAction
@@ -53,6 +56,9 @@ type MockUpgradeUseCase struct {
 }
 
 func (m *MockUpgradeUseCase) GetUpgrades() []dto.Upgrade {
+	return m.upgrades
+}
+func (m *MockUpgradeUseCase) GetUpgradesIsReleasedCostSorted() []dto.Upgrade {
 	return m.upgrades
 }
 func (m *MockUpgradeUseCase) PurchaseUpgradeAction(index int) (bool, string) {
