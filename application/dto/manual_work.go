@@ -1,6 +1,10 @@
 package dto
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/kmdkuk/clicker/presentation/formatter"
+)
 
 type ManualWork struct {
 	Name  string
@@ -8,7 +12,7 @@ type ManualWork struct {
 }
 
 func (m *ManualWork) String() string {
-	return fmt.Sprintf("%s: $%.2f", m.Name, m.Value)
+	return fmt.Sprintf("%s: %s", m.Name, formatter.FormatCurrency(m.Value, "$"))
 }
 func (m *ManualWork) GetName() string {
 	return m.Name
