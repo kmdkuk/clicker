@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/kmdkuk/clicker/application/dto"
+	"github.com/kmdkuk/clicker/presentation/formatter"
 )
 
 // DisplayComponent shows basic game information
@@ -17,8 +18,9 @@ func NewDisplay() *Display {
 }
 
 func (d *Display) DrawMoney(screen *ebiten.Image, playerDTO *dto.Player) {
-	moneyText := fmt.Sprintf("Money: $%.2f (Total Generate Rate: $%.2f/s)",
-		playerDTO.GetMoney(),
-		playerDTO.GetTotalGenerateRate())
+	moneyText := fmt.Sprintf("Money: %s (Total Generate Rate: %s/s)",
+		formatter.FormatCurrency(playerDTO.GetMoney(), "$"),
+		formatter.FormatCurrency(playerDTO.GetTotalGenerateRate(), "$"),
+	)
 	ebitenutil.DebugPrintAt(screen, moneyText, 10, 10)
 }

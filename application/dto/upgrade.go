@@ -1,6 +1,8 @@
 package dto
 
-import "fmt"
+import (
+	"github.com/kmdkuk/clicker/presentation/formatter"
+)
 
 type Upgrade struct {
 	ID          string
@@ -15,9 +17,9 @@ func (u *Upgrade) String() string {
 		return u.Name + " (Purchased)"
 	}
 	if u.IsReleased {
-		return u.Name + " (Selling Cost: $" + fmt.Sprintf("%.2f", u.Cost) + ")"
+		return u.Name + " (Selling Cost: " + formatter.FormatCurrency(u.Cost, "$") + ")"
 	}
-	return u.Name + " (Locked Cost: $" + fmt.Sprintf("%.2f", u.Cost) + ")"
+	return u.Name + " (Locked Cost: " + formatter.FormatCurrency(u.Cost, "$") + ")"
 }
 
 func (u *Upgrade) GetName() string {

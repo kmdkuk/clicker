@@ -1,6 +1,10 @@
 package dto
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/kmdkuk/clicker/presentation/formatter"
+)
 
 type Building struct {
 	Name              string
@@ -16,12 +20,12 @@ func (b *Building) String() string {
 		locked = "Next"
 	}
 	return fmt.Sprintf(
-		"%s (%s, Cost: $%.2f, Count: %d, Generate Rate: $%.2f/s)",
+		"%s (%s, Cost: %s, Count: %d, Generate Rate: %s/s)",
 		b.Name,
 		locked,
-		b.Cost,
+		formatter.FormatCurrency(b.Cost, "$"),
 		b.Count,
-		b.TotalGenerateRate,
+		formatter.FormatCurrency(b.TotalGenerateRate, "$"),
 	)
 }
 
