@@ -19,13 +19,16 @@ func FormatLargeNumber(value float64) string {
 		return "-" + FormatLargeNumber(-value)
 	}
 
-	// 値が1000未満の場合、小数点以下2桁まで表示（必要なら）
+	// 値が1000未満の場合、範囲に応じて異なる小数点以下の桁数を使用
+	// For values under 10, use two decimal places to provide finer precision for small numbers.
 	if value < 10 {
 		return fmt.Sprintf("%.2f", floor(value, 2))
 	}
+	// For values between 10 and 100, use one decimal place to balance precision and readability.
 	if value < 100 {
 		return fmt.Sprintf("%.1f", floor(value, 1))
 	}
+	// For values between 100 and 1000, use no decimal places to simplify the representation.
 	if value < 1000 {
 		return fmt.Sprintf("%.0f", floor(value, 0))
 	}
