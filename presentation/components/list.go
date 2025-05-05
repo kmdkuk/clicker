@@ -30,6 +30,8 @@ type ListItem interface {
 	String() string
 }
 
+const ItemHeight = 20
+
 type List struct {
 	Items        []ListItem
 	Visible      bool
@@ -94,7 +96,7 @@ func (l *List) Draw(screen *ebiten.Image, cursor int) {
 	// Draw only items within the current viewport
 	for i := l.scrollPos; i < endIdx; i++ {
 		item := l.Items[i]
-		displayY := l.y + (i-l.scrollPos)*20
+		displayY := l.y + (i-l.scrollPos)*ItemHeight
 
 		if i == cursor {
 			ebitenutil.DebugPrintAt(screen, "> "+item.String(), l.x, displayY)
@@ -129,7 +131,7 @@ func (l *List) drawScrollBar(screen *ebiten.Image, endIdx int) {
 
 	// Calculate scrollbar height based on visible range
 	visibleCount := endIdx - l.scrollPos
-	listHeight := float64(visibleCount * 20)
+	listHeight := float64(visibleCount * ItemHeight)
 
 	// Draw scrollbar background (track)
 	backgroundColor := color.RGBA{R: 80, G: 80, B: 80, A: 180}
