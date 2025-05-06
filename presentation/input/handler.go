@@ -47,7 +47,8 @@ func (ih *DefaultHandler) Update() {
 
 	mouseX, mouseY := ebiten.CursorPosition()
 	ih.isMouseMoved = false
-	if math.Abs(float64(mouseX-ih.mouseX)) > 10 || math.Abs(float64(mouseY-ih.mouseY)) > 10 {
+	const mouseMoveThreshold = 10
+	if math.Abs(float64(mouseX-ih.mouseX)) > mouseMoveThreshold || math.Abs(float64(mouseY-ih.mouseY)) > mouseMoveThreshold {
 		ih.isMouseMoved = true
 		ih.mouseX = mouseX
 		ih.mouseY = mouseY
