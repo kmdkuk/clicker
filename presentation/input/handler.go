@@ -20,6 +20,8 @@ func NewHandler() Handler {
 // DefaultHandler is the default implementation of InputHandler
 type DefaultHandler struct {
 	pressedKey ebiten.Key // Stores the pressed key
+	wheeldx    float64
+	wheeldy    float64
 }
 
 // Update method to record the pressed key
@@ -30,10 +32,23 @@ func (ih *DefaultHandler) Update() {
 		ih.pressedKey = key
 		break // Record only the first pressed key
 	}
+	ih.wheeldx, ih.wheeldy = ebiten.Wheel()
 }
 
 // GetPressedKey method to classify and retrieve the pressed key
 func (ih *DefaultHandler) GetPressedKey() KeyType {
+	if ih.wheeldx > 0 {
+		return KeyTypeRight
+	}
+	if ih.wheeldx < 0 {
+		return KeyTypeLeft
+	}
+	if ih.wheeldy > 0 {
+		return KeyTypeUp
+	}
+	if ih.wheeldy < 0 {
+		return KeyTypeDown
+	}
 	switch ih.pressedKey {
 	case ebiten.KeyArrowUp, ebiten.KeyW, ebiten.KeyK:
 		return KeyTypeUp // Direction key: Up
