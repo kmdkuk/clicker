@@ -20,7 +20,7 @@ func (b *Building) String() string {
 		locked = "Next"
 	}
 	return fmt.Sprintf(
-		"%s (%s, Cost: %s, Count: %d, Generate Rate: %s/s)",
+		"%s (%s, Cost: %s, Count: %d, Rate: %s/s)",
 		b.Name,
 		locked,
 		formatter.FormatCurrency(b.Cost, "$"),

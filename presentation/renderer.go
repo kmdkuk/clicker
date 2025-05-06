@@ -78,9 +78,9 @@ func NewRenderer(config *config.Config, playerUseCase PlayerUseCase, manualWorkU
 		display:           components.NewDisplay(),
 		popup:             components.NewPopup(),
 		manualWork:        components.NewList(true, 10, 50),
-		buildings:         components.NewList(false, 10, 90),
-		upgrades:          components.NewList(false, 10, 90),
-		tabs:              components.NewTab([]string{"Buildings", "Upgrades"}, 0, 20, 70),
+		tabs:              components.NewTab([]string{"Buildings", "Upgrades"}, 0, 10, 90),
+		buildings:         components.NewList(false, 10, 130),
+		upgrades:          components.NewList(false, 10, 130),
 	}
 }
 
