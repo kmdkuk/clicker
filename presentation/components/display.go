@@ -14,10 +14,21 @@ import (
 
 // DisplayComponent shows basic game information
 type Display struct {
+	x int
+	y int
 }
 
-func NewDisplay() *Display {
-	return &Display{}
+func NewDisplay(x, y int) *Display {
+	return &Display{
+		x: x,
+		y: y,
+	}
+}
+
+func (d *Display) calcItemWidthHeight(screenWidth int) (float32, float32) {
+	itemWidth := screenWidth - d.x - ScrollbarWidth - ScrollbarMargin*2
+	itemHeight := ItemHeight - ItemVerticalShift
+	return float32(itemWidth), float32(itemHeight)
 }
 
 func (d *Display) DrawMoney(screen *ebiten.Image, playerDTO *dto.Player) {
@@ -25,21 +36,12 @@ func (d *Display) DrawMoney(screen *ebiten.Image, playerDTO *dto.Player) {
 		formatter.FormatCurrency(playerDTO.GetMoney(), "$"),
 		formatter.FormatCurrency(playerDTO.GetTotalGenerateRate(), "$"),
 	)
-	x := 10
-	y := 10
-	// 画面の幅を取得してアイテムの背景幅を決定
-	screenWidth := screen.Bounds().Dx()
-
-	// アイテムの幅を計算（スクロールバー分を引く）
-	itemWidth := screenWidth - x - ScrollbarWidth - ScrollbarMargin*2
 
 	bgColor := NormalBgColor
 
 	// 背景矩形を描画
-	rectY := float32(y)
-	rectWidth := float32(itemWidth)
-	rectHeight := float32(ItemHeight - ItemVerticalShift)
-	vector.DrawFilledRect(screen, float32(x), rectY, rectWidth, rectHeight, bgColor, false)
+	rectWidth, rectHeight := d.calcItemWidthHeight(screen.Bounds().Dx())
+	vector.DrawFilledRect(screen, float32(d.x), float32(d.y), rectWidth, rectHeight, bgColor, false)
 
 	// テキストの色を設定（選択中かどうかで分ける）
 	textColor := NormalTextColor
@@ -56,8 +58,8 @@ func (d *Display) DrawMoney(screen *ebiten.Image, playerDTO *dto.Player) {
 		Size:   float64(TextSize),
 	}
 
-	rectCenterY := float32(y) + rectHeight/2
-	textX := float64(x + ItemTextPadding)
+	rectCenterY := float32(d.y) + rectHeight/2
+	textX := float64(d.x) + ItemTextPadding
 	textY := float64(rectCenterY)
 
 	// テキスト描画

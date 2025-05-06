@@ -75,7 +75,7 @@ func NewRenderer(config *config.Config, playerUseCase PlayerUseCase, manualWorkU
 		debugMessage:      "",
 		decider:           NewDecider(manualWorkUseCase, buildingUseCase, upgradeUseCase),
 		navigation:        NewNavigation([]int{len(buildingUseCase.GetBuildings()), len(upgradeUseCase.GetUpgrades())}),
-		display:           components.NewDisplay(),
+		display:           components.NewDisplay(10, 10),
 		popup:             components.NewPopup(),
 		manualWork:        components.NewList(true, 10, 50),
 		tabs:              components.NewTab([]string{"Buildings", "Upgrades"}, 0, 10, 90),

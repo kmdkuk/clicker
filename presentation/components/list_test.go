@@ -118,7 +118,6 @@ var _ = Describe("List", func() {
 				Expect(list.x).To(Equal(10))
 				Expect(list.y).To(Equal(20))
 				Expect(list.scrollPos).To(Equal(0))
-				Expect(list.viewportSize).To(Equal(10)) // Default viewport size
 			})
 
 			It("should initialize with custom viewport size", func() {

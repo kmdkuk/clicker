@@ -99,14 +99,15 @@ func (l *List) Draw(screen *ebiten.Image, cursor int) {
 	l.drawScrollBar(screen, endIdx)
 }
 
-func (l *List) drawItem(screen *ebiten.Image, item ListItem, x, y int, isSelected bool) {
-	// 画面の幅を取得してアイテムの背景幅を決定
-	screenWidth := screen.Bounds().Dx()
-
-	// アイテムの幅を計算（スクロールバー分を引く）
+func (l *List) calcItemWidthHeight(screenWidth int, x, y int) (float32, float32) {
 	itemWidth := screenWidth - x - ScrollbarWidth - ScrollbarMargin*2
+	itemHeight := ItemHeight - ItemVerticalShift*2
 
-	// 背景色を設定（選択中かどうかで分ける）
+	return float32(itemWidth), float32(itemHeight)
+
+}
+
+func (l *List) drawItem(screen *ebiten.Image, item ListItem, x, y int, isSelected bool) {
 	var bgColor color.RGBA
 	if isSelected {
 		bgColor = SelectedBgColor
@@ -115,10 +116,8 @@ func (l *List) drawItem(screen *ebiten.Image, item ListItem, x, y int, isSelecte
 	}
 
 	// 背景矩形を描画
-	rectY := float32(y)
-	rectWidth := float32(itemWidth)
-	rectHeight := float32(ItemHeight - ItemVerticalShift*2)
-	vector.DrawFilledRect(screen, float32(x), rectY, rectWidth, rectHeight, bgColor, false)
+	rectWidth, rectHeight := l.calcItemWidthHeight(screen.Bounds().Dx(), x, y)
+	vector.DrawFilledRect(screen, float32(x), float32(y), rectWidth, rectHeight, bgColor, false)
 
 	// テキストの色を設定（選択中かどうかで分ける）
 	var textColor color.RGBA
@@ -132,8 +131,6 @@ func (l *List) drawItem(screen *ebiten.Image, item ListItem, x, y int, isSelecte
 	textStr := item.String()
 	if isSelected {
 		textStr = "> " + textStr // 選択中の項目には矢印をつける
-	} else {
-		textStr = "  " + textStr // 非選択項目は揃えるためのスペースを入れる
 	}
 
 	// フォントフェイスを作成
