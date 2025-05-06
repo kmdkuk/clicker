@@ -1,15 +1,18 @@
 package presentation
 
 import (
+	"bytes"
 	"image/color"
 
 	"github.com/kmdkuk/clicker/application/dto"
+	"github.com/kmdkuk/clicker/assets/fonts"
 	"github.com/kmdkuk/clicker/config"
 	"github.com/kmdkuk/clicker/presentation/components"
 	"github.com/kmdkuk/clicker/presentation/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type Renderer interface {
@@ -64,7 +67,11 @@ type DefaultRenderer struct {
 	// Add other components as needed
 }
 
-func NewRenderer(config *config.Config, playerUseCase PlayerUseCase, manualWorkUseCase ManualWorkUseCase, buildingUseCase BuildingUseCase, upgradeUseCase UpgradeUseCase) Renderer {
+func NewRenderer(config *config.Config, playerUseCase PlayerUseCase, manualWorkUseCase ManualWorkUseCase, buildingUseCase BuildingUseCase, upgradeUseCase UpgradeUseCase) (Renderer, error) {
+	source, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.BebasNeueRegular_ttf))
+	if err != nil {
+		return nil, err
+	}
 
 	return &DefaultRenderer{
 		config:            config,
@@ -75,13 +82,13 @@ func NewRenderer(config *config.Config, playerUseCase PlayerUseCase, manualWorkU
 		debugMessage:      "",
 		decider:           NewDecider(manualWorkUseCase, buildingUseCase, upgradeUseCase),
 		navigation:        NewNavigation([]int{len(buildingUseCase.GetBuildings()), len(upgradeUseCase.GetUpgrades())}),
-		display:           components.NewDisplay(),
-		popup:             components.NewPopup(),
-		manualWork:        components.NewList(true, 10, 50),
-		buildings:         components.NewList(false, 10, 90),
-		upgrades:          components.NewList(false, 10, 90),
-		tabs:              components.NewTab([]string{"Buildings", "Upgrades"}, 0, 20, 70),
-	}
+		display:           components.NewDisplay(10, 10),
+		popup:             components.NewPopup(source),
+		manualWork:        components.NewList(source, true, 10, 50),
+		tabs:              components.NewTab(source, []string{"Buildings", "Upgrades"}, 0, 10, 90),
+		buildings:         components.NewList(source, false, 10, 130),
+		upgrades:          components.NewList(source, false, 10, 130),
+	}, nil
 }
 
 func (r *DefaultRenderer) Update() {
@@ -108,12 +115,6 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 	// Draw game information
 	r.display.DrawMoney(screen, r.playerUseCase.GetPlayer())
 
-	// If popup is active, only draw it and return
-	if r.popup.IsActive() {
-		r.popup.Draw(screen)
-		return
-	}
-
 	r.manualWork.Draw(screen, r.navigation.GetCursor())
 
 	// Draw tabs
@@ -124,6 +125,11 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 	r.upgrades.Visible = r.navigation.GetPage() == 1
 	r.buildings.Draw(screen, r.navigation.GetCursor()-1)
 	r.upgrades.Draw(screen, r.navigation.GetCursor()-1)
+
+	// If popup is active, only draw it and return
+	if r.popup.IsActive() {
+		r.popup.Draw(screen)
+	}
 
 }
 

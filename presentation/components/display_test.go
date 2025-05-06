@@ -19,7 +19,7 @@ var _ = Describe("Display", func() {
 			Money:             123.45,
 			TotalGenerateRate: 6.78,
 		}
-		display = NewDisplay()
+		display = NewDisplay(10, 10)
 		mockScreen = ebiten.NewImage(640, 480)
 	})
 

@@ -27,13 +27,16 @@ func main() {
 	if state, err := storage.LoadGameState(); err == nil {
 		gameState = state
 	}
-	renderer := presentation.NewRenderer(
+	renderer, err := presentation.NewRenderer(
 		cfg,
 		usecase.NewPlayerUsecase(gameState),
 		usecase.NewManualWorkUseCase(gameState),
 		usecase.NewBuildingUseCase(gameState),
 		usecase.NewUpgradeUseCase(gameState),
 	)
+	if err != nil {
+		log.Fatal(err)
+	}
 	inputHandler := input.NewHandler()
 	g := game.NewGame(
 		cfg,

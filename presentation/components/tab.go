@@ -1,49 +1,112 @@
 package components
 
 import (
+	"image/color"
+
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// Tab represents a UI component that displays tabs for different pages
 type Tab struct {
-	titles     []string // Titles for each tab
-	activePage int      // Currently active page index
-	x, y       int      // Position of the tabs
+	source     *text.GoTextFaceSource
+	titles     []string
+	x          int
+	y          int
+	activePage int
 }
 
-// NewTab creates a new Tab component
-func NewTab(titles []string, defaultPage int, x, y int) *Tab {
+func NewTab(source *text.GoTextFaceSource, items []string, defaultPage, x, y int) *Tab {
 	return &Tab{
-		titles:     titles,
-		activePage: defaultPage,
+		source:     source,
+		titles:     items,
 		x:          x,
 		y:          y,
+		activePage: defaultPage,
 	}
 }
 
-// Draw renders the tabs on the screen
-func (t *Tab) Draw(screen *ebiten.Image) {
-	for i, title := range t.titles {
-		xPos := t.x + i*120 // Space tabs 120 pixels apart
-
-		// Highlight the active tab
-		if i == t.activePage {
-			ebitenutil.DebugPrintAt(screen, "[x] "+title, xPos, t.y)
-		} else {
-			ebitenutil.DebugPrintAt(screen, "[ ] "+title, xPos, t.y)
-		}
+func (t *Tab) SetActivePage(index int) {
+	if index >= 0 && index < len(t.titles) {
+		t.activePage = index
 	}
 }
 
-// SetActivePage changes the active page
-func (t *Tab) SetActivePage(page int) {
-	if page >= 0 && page < len(t.titles) {
-		t.activePage = page
-	}
-}
-
-// GetActivePage returns the currently active page index
 func (t *Tab) GetActivePage() int {
 	return t.activePage
+}
+
+// Draw はタブを描画します
+func (t *Tab) Draw(screen *ebiten.Image) {
+	if len(t.titles) == 0 {
+		return
+	}
+
+	face := &text.GoTextFace{
+		Source: t.source,
+		Size:   float64(TextSize),
+	}
+
+	// 現在のX位置（水平方向に並べるため）
+	currentX := t.x
+
+	// 各タブを描画
+	for i, item := range t.titles {
+		if i != 0 {
+			// 最初のタブ以外は、前のタブの右側に配置
+			currentX += ItemVerticalShift
+		}
+		label := item
+		isSelected := i == t.activePage
+		tabWidth := ((screen.Bounds().Dx() - (10 + ScrollbarWidth + ScrollbarMargin*2)) / len(t.titles)) - ItemVerticalShift*(len(t.titles)-1)
+
+		// 背景色を設定（選択中かホバー中かで分ける）
+		var bgColor color.RGBA
+		if isSelected {
+			bgColor = SelectedBgColor
+		} else {
+			bgColor = NormalBgColor
+		}
+
+		// タブの背景を描画（上部に丸みをつける）
+		t.drawTabBackground(screen, currentX, t.y+ItemVerticalShift, tabWidth, ItemHeight-(ItemVerticalShift*2), bgColor)
+
+		// テキストの色を設定
+		var textColor color.RGBA
+		if isSelected {
+			textColor = SelectedTextColor
+		} else {
+			textColor = NormalTextColor
+		}
+
+		// 背景矩形の中央を計算
+		rectCenterX := float64(currentX + tabWidth/2)
+		rectCenterY := float64(t.y + ItemHeight/2)
+
+		// テキスト描画
+		txtOp := &text.DrawOptions{}
+		txtOp.PrimaryAlign = text.AlignCenter
+		txtOp.SecondaryAlign = text.AlignCenter
+		txtOp.GeoM.Translate(rectCenterX, rectCenterY)
+		txtOp.ColorScale.ScaleWithColor(textColor)
+
+		text.Draw(screen, label, face, txtOp)
+
+		// 次のタブの開始位置
+		currentX += tabWidth + ItemVerticalShift
+	}
+}
+
+// drawTabBackground はタブの背景を描画します（上側の角のみ丸くする）
+func (t *Tab) drawTabBackground(screen *ebiten.Image, x, y, width, height int, bgColor color.RGBA) {
+	// 標準の矩形描画
+	vector.DrawFilledRect(
+		screen,
+		float32(x),
+		float32(y),
+		float32(width),
+		float32(height),
+		bgColor,
+		false,
+	)
 }

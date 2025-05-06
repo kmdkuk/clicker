@@ -114,12 +114,14 @@ var _ = Describe("Renderer", func() {
 		}
 
 		// Create Renderer
-		renderer = NewRenderer(testConfig,
+		r, err := NewRenderer(testConfig,
 			playerUseCase,
 			manualWorkUseCase,
 			buildingUseCase,
 			upgradeUseCase,
-		).(*DefaultRenderer)
+		)
+		Expect(err).NotTo(HaveOccurred())
+		renderer = r.(*DefaultRenderer)
 
 		// Create mock screen
 		mockScreen = ebiten.NewImage(640, 480)

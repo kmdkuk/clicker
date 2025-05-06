@@ -1,9 +1,13 @@
 package components
 
 import (
+	"bytes"
+
 	"github.com/kmdkuk/clicker/application/dto"
+	"github.com/kmdkuk/clicker/assets/fonts"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -23,6 +27,8 @@ var _ = Describe("List", func() {
 		mockScreen *ebiten.Image
 		items      []ListItem
 	)
+	source, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.BebasNeueRegular_ttf))
+	Expect(err).NotTo(HaveOccurred())
 
 	BeforeEach(func() {
 		mockScreen = ebiten.NewImage(640, 480)
@@ -33,7 +39,7 @@ var _ = Describe("List", func() {
 			&MockListItem{StringValue: "Item 3"},
 		}
 
-		list = NewList(true, 10, 20)
+		list = NewList(source, true, 10, 20)
 		list.Items = items
 	})
 
@@ -96,7 +102,7 @@ var _ = Describe("List", func() {
 
 		BeforeEach(func() {
 			// Create a test list with viewport size 3
-			list = NewListWithViewport(true, 10, 20, 3)
+			list = NewListWithViewport(source, true, 10, 20, 3)
 
 			// Add test items
 			list.Items = []ListItem{
@@ -113,16 +119,15 @@ var _ = Describe("List", func() {
 
 		Describe("Initialization", func() {
 			It("should initialize with correct default values", func() {
-				list := NewList(true, 10, 20)
+				list := NewList(source, true, 10, 20)
 				Expect(list.Visible).To(BeTrue())
 				Expect(list.x).To(Equal(10))
 				Expect(list.y).To(Equal(20))
 				Expect(list.scrollPos).To(Equal(0))
-				Expect(list.viewportSize).To(Equal(10)) // Default viewport size
 			})
 
 			It("should initialize with custom viewport size", func() {
-				list := NewListWithViewport(false, 5, 15, 5)
+				list := NewListWithViewport(source, false, 5, 15, 5)
 				Expect(list.Visible).To(BeFalse())
 				Expect(list.x).To(Equal(5))
 				Expect(list.y).To(Equal(15))

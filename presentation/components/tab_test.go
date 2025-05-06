@@ -1,17 +1,24 @@
 package components
 
 import (
+	"bytes"
+
+	"github.com/kmdkuk/clicker/assets/fonts"
+
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Tab Component", func() {
 	var tab *Tab
+	source, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.BebasNeueRegular_ttf))
+	Expect(err).NotTo(HaveOccurred())
 
 	BeforeEach(func() {
 		// Initialize a tab with test data before each test
-		tab = NewTab([]string{"Buildings", "Upgrades"}, 0, 10, 20)
+		tab = NewTab(source, []string{"Buildings", "Upgrades"}, 0, 10, 20)
 	})
 
 	Context("initialization", func() {
@@ -23,7 +30,7 @@ var _ = Describe("Tab Component", func() {
 		})
 
 		It("should support initialization with non-zero default page", func() {
-			customTab := NewTab([]string{"Tab1", "Tab2", "Tab3"}, 1, 5, 15)
+			customTab := NewTab(source, []string{"Tab1", "Tab2", "Tab3"}, 1, 5, 15)
 			Expect(customTab.activePage).To(Equal(1))
 		})
 	})
@@ -69,7 +76,7 @@ var _ = Describe("Tab Component", func() {
 
 	Context("with multiple tabs", func() {
 		It("should handle multiple tabs correctly", func() {
-			multiTab := NewTab([]string{"Tab1", "Tab2", "Tab3", "Tab4"}, 0, 10, 20)
+			multiTab := NewTab(source, []string{"Tab1", "Tab2", "Tab3", "Tab4"}, 0, 10, 20)
 
 			Expect(multiTab.titles).To(HaveLen(4))
 
