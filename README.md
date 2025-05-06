@@ -1,6 +1,7 @@
 # Clicker
 
-This project is a simple incremental game built using the Ebiten game library in Go. It demonstrates how to structure a game project with separate files for game logic, input handling, and assets.
+This project is a simple incremental game built using the [Ebitengine](https://ebitengine.org/) game library in Go. It demonstrates how to structure a game project with separate files for game logic, input handling, and assets.
+You can play it at [https://kmdk.uk/clicker/](https://kmdk.uk/clicker/)
 
 ## Game Overview
 
@@ -12,25 +13,25 @@ Clicker is a simple incremental game where players can earn money through manual
 - **Upgrades**: Unlock and apply upgrades to enhance manual work or building efficiency.
 - **Popup Messages**: Informative messages guide the player when actions cannot be performed.
 - **Debug Mode**: Enable debug mode to display internal game state for testing and development.
+- **Scrollable Lists**: Efficiently navigate long lists of buildings and upgrades.
+- **Large Number Formatting**: Display large numbers in a readable format (e.g., 1K, 1M).
 
 ## How to Play
 
-1. **Navigate the menu**:
-   - Use the arrow keys (`↑`, `↓`) or `W`/`S`/`J`/`K` to move the cursor.
-2. **Switch pages**:
-   - Use the left/right arrow keys or `A`/`D`/`H`/`L` to toggle between pages (buildings and upgrades).
-3. **Perform actions**:
+1. **Navigate the Menu**:
+   - Use the arrow keys (`↑`, `↓`) or `W`/`S` to move the cursor.
+2. **Switch Pages**:
+   - Use the left/right arrow keys (`←`, `→`) or `A`/`D` to switch between the Buildings and Upgrades pages.
+3. **Select an Option**:
    - Press `Enter` or `Space` to select an option.
-4. **Earn money**:
+4. **Earn Money**:
    - Select "Manual Work" to earn money manually.
-5. **Purchase buildings**:
-   - Use earned money to purchase buildings and generate passive income.
-6. **Apply upgrades**:
-   - Unlock upgrades to enhance your gameplay.
-7. **Close popups**:
+5. **Purchase Buildings**:
+   - Use earned money to purchase buildings for passive income.
+6. **Apply Upgrades**:
+   - Unlock upgrades to improve efficiency.
+7. **Close Popups**:
    - Press `Enter` to close popup messages.
-
-For playing the game online, visit: [https://kmdk.uk/clicker/](https://kmdk.uk/clicker/)
 
 ## Project Structure
 
@@ -39,20 +40,20 @@ For playing the game online, visit: [https://kmdk.uk/clicker/](https://kmdk.uk/c
 │   └── main.go       # Main function to start the game
 ├── game              # Contains game core logic
 │   └── game.go       # Main game logic
-├── model             # Core data models
-│   ├── building.go   # Building data model
-│   ├── upgrade.go    # Upgrade data model
-│   └── manual_work.go # Manual work data model
-├── state             # Game state management
-│   └── game_state.go # Handles game state updates
-├── input             # Input handling logic
-│   ├── handler.go    # Input handler implementation
-│   └── decider.go    # Decision-making logic
-├── ui                # User interface components
-│   └── popup.go      # Popup message handling
-├── config            # Configuration
-│   └── config.go     # Game configuration
-├── assets            # Contains game assets
+├── application       # Application layer for use cases and DTOs
+│   ├── dto/          # Data Transfer Objects
+│   └── usecase/      # Use case implementations
+├── domain/model      # Core data models
+├── infrastructure    # Infrastructure layer for state and storage
+│   ├── state/        # Game state management
+│   └── storage/      # Save/load functionality
+├── presentation      # Presentation layer for UI and input handling
+│   ├── components/   # UI components (e.g., lists, tabs, popups)
+│   ├── formatter/    # Number formatting utilities
+│   └── input/        # Input handling
+├── assets            # Game assets (fonts, images, etc.)
+├── config            # Configuration files
+├── Makefile          # Build and run commands
 ├── go.mod            # Go module configuration
 ├── .goreleaser.yaml  # Release configuration for GoReleaser
 └── README.md         # Project documentation
@@ -87,6 +88,16 @@ Before running the game, ensure the following dependencies are installed on your
 2. **Run the game**:
    ```bash
    go run ./cmd/clicker/main.go
+   ```
+
+3. **Build the game**:
+   ```bash
+   go build -o bin/clicker ./cmd/clicker
+   ```
+
+4. **Build for WebAssembly**:
+   ```bash
+   make build-wasm
    ```
 
 ## Assets
