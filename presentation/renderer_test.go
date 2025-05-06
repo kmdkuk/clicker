@@ -147,15 +147,15 @@ var _ = Describe("Renderer", func() {
 			It("HandlePopup should return appropriate values based on popup state", func() {
 				renderer.ShowPopup("Test message")
 				// Should return true because popup is active
-				renderer.HandleInput(input.KeyTypeNone)
+				renderer.HandleInput(input.KeyTypeNone, false, 0, 0)
 				Expect(renderer.IsPopupActive()).To(BeTrue())
 
 				// Close the popup
-				renderer.HandleInput(input.KeyTypeDecision)
+				renderer.HandleInput(input.KeyTypeDecision, false, 0, 0)
 				Expect(renderer.IsPopupActive()).To(BeFalse())
 
 				// Should return false because popup is inactive now
-				renderer.HandleInput(input.KeyTypeNone)
+				renderer.HandleInput(input.KeyTypeNone, false, 0, 0)
 				Expect(renderer.IsPopupActive()).To(BeFalse())
 			})
 		})
@@ -170,16 +170,16 @@ var _ = Describe("Renderer", func() {
 
 		It("should close popup when HandlePopupInput is called with decision key", func() {
 			// Verify popup closes with decision key
-			renderer.HandleInput(input.KeyTypeDecision)
+			renderer.HandleInput(input.KeyTypeDecision, false, 0, 0)
 			Expect(renderer.IsPopupActive()).To(BeFalse())
 		})
 
 		It("should not close popup when HandlePopupInput is called with non-decision keys", func() {
 			// Verify popup doesn't close with non-decision keys
-			renderer.HandleInput(input.KeyTypeUp)
+			renderer.HandleInput(input.KeyTypeUp, false, 0, 0)
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 
-			renderer.HandleInput(input.KeyTypeDown)
+			renderer.HandleInput(input.KeyTypeDown, false, 0, 0)
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 		})
 
@@ -192,7 +192,7 @@ var _ = Describe("Renderer", func() {
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 
 			// HandleInput with decision key should close the popup
-			renderer.HandleInput(input.KeyTypeDecision)
+			renderer.HandleInput(input.KeyTypeDecision, false, 0, 0)
 			Expect(renderer.IsPopupActive()).To(BeFalse())
 		})
 		It("should skip normal navigation when popup is active", func() {
@@ -204,8 +204,8 @@ var _ = Describe("Renderer", func() {
 			initialCursor := renderer.navigation.GetCursor()
 
 			// Send navigation keys
-			renderer.HandleInput(input.KeyTypeRight) // Try to change page
-			renderer.HandleInput(input.KeyTypeDown)  // Try to move cursor
+			renderer.HandleInput(input.KeyTypeRight, false, 0, 0) // Try to change page
+			renderer.HandleInput(input.KeyTypeDown, false, 0, 0)  // Try to move cursor
 
 			// Verify navigation doesn't work when popup is active
 			Expect(renderer.navigation.GetPage()).To(Equal(initialPage))
@@ -215,13 +215,13 @@ var _ = Describe("Renderer", func() {
 		It("should resume normal navigation after popup is closed", func() {
 			// Display popup and then close it
 			renderer.ShowPopup("Test message")
-			renderer.HandleInput(input.KeyTypeDecision)
+			renderer.HandleInput(input.KeyTypeDecision, false, 0, 0)
 
 			// Save initial state
 			initialCursor := renderer.navigation.GetCursor()
 
 			// Verify cursor movement works
-			renderer.HandleInput(input.KeyTypeDown)
+			renderer.HandleInput(input.KeyTypeDown, false, 0, 0)
 			Expect(renderer.navigation.GetCursor()).NotTo(Equal(initialCursor))
 		})
 	})
@@ -255,17 +255,17 @@ var _ = Describe("Renderer", func() {
 				Expect(renderer.navigation.GetCursor()).To(Equal(0))
 
 				// Move cursor down
-				renderer.HandleInput(input.KeyTypeDown)
+				renderer.HandleInput(input.KeyTypeDown, false, 0, 0)
 				Expect(renderer.navigation.GetCursor()).To(Equal(1))
 
 				// Move cursor up
-				renderer.HandleInput(input.KeyTypeUp)
+				renderer.HandleInput(input.KeyTypeUp, false, 0, 0)
 				Expect(renderer.navigation.GetCursor()).To(Equal(0))
 			})
 
 			It("should wrap cursor when reaching boundaries", func() {
 				// Move cursor up from top position (should wrap to bottom)
-				renderer.HandleInput(input.KeyTypeUp)
+				renderer.HandleInput(input.KeyTypeUp, false, 0, 0)
 				totalItems := len(buildingUseCase.GetBuildings()) + 1 // Manual work + buildings
 				Expect(renderer.navigation.GetCursor()).To(Equal(totalItems - 1))
 			})
@@ -275,30 +275,30 @@ var _ = Describe("Renderer", func() {
 				Expect(renderer.navigation.GetPage()).To(Equal(0))
 
 				// Move to next page
-				renderer.HandleInput(input.KeyTypeRight)
+				renderer.HandleInput(input.KeyTypeRight, false, 0, 0)
 				Expect(renderer.navigation.GetPage()).To(Equal(1))
 
 				// Move back to previous page
-				renderer.HandleInput(input.KeyTypeLeft)
+				renderer.HandleInput(input.KeyTypeLeft, false, 0, 0)
 				Expect(renderer.navigation.GetPage()).To(Equal(0))
 
 				// Navigate left from first page should wrap to last page
-				renderer.HandleInput(input.KeyTypeLeft)
+				renderer.HandleInput(input.KeyTypeLeft, false, 0, 0)
 				Expect(renderer.navigation.GetPage()).To(Equal(1)) // Assuming 2 pages total
 			})
 
 			It("should validate cursor position when switching pages", func() {
 				// Move to page 1
-				renderer.HandleInput(input.KeyTypeRight)
+				renderer.HandleInput(input.KeyTypeRight, false, 0, 0)
 				Expect(renderer.navigation.GetPage()).To(Equal(1))
 
 				// Set cursor to position that might be invalid on other pages
 				for i := 0; i < 5; i++ {
-					renderer.HandleInput(input.KeyTypeDown)
+					renderer.HandleInput(input.KeyTypeDown, false, 0, 0)
 				}
 
 				// Move back to page 0
-				renderer.HandleInput(input.KeyTypeLeft)
+				renderer.HandleInput(input.KeyTypeLeft, false, 0, 0)
 
 				// Cursor should be validated within bounds of page 0
 				Expect(renderer.navigation.GetCursor()).To(BeNumerically("<=", len(buildingUseCase.GetBuildings())))
@@ -345,11 +345,11 @@ var _ = Describe("Renderer", func() {
 	Describe("Decision handling", func() {
 		It("should trigger decision action based on cursor and page", func() {
 			// Move to a building position
-			renderer.HandleInput(input.KeyTypeDown) // Move to building 1
+			renderer.HandleInput(input.KeyTypeDown, false, 0, 0) // Move to building 1
 
 			// Should not panic when making a decision
 			Expect(func() {
-				renderer.HandleInput(input.KeyTypeDecision)
+				renderer.HandleInput(input.KeyTypeDecision, false, 0, 0)
 			}).NotTo(Panic())
 		})
 
@@ -359,7 +359,7 @@ var _ = Describe("Renderer", func() {
 			// For this test, we're assuming the decider works as expected
 
 			// Instead we can verify the popup doesn't show with empty message
-			renderer.HandleInput(input.KeyTypeDecision)
+			renderer.HandleInput(input.KeyTypeDecision, false, 0, 0)
 			Expect(renderer.IsPopupActive()).To(BeFalse()) // Our mock returns empty string
 		})
 
@@ -370,7 +370,7 @@ var _ = Describe("Renderer", func() {
 
 			renderer.navigation.cursor = 1
 			renderer.navigation.page = 0
-			renderer.handleDecision()
+			renderer.handleDecision(false, 0, 0)
 			Expect(renderer.IsPopupActive()).To(BeTrue())
 			Expect(renderer.GetPopupMessage()).To(Equal("Not enough money!"))
 		})

@@ -1,12 +1,10 @@
 package components
 
 import (
-	"bytes"
 	"fmt"
 	"image/color"
 
 	"github.com/kmdkuk/clicker/application/dto"
-	"github.com/kmdkuk/clicker/assets/fonts"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -136,14 +134,8 @@ func (l *List) drawItem(screen *ebiten.Image, item ListItem, x, y int, isSelecte
 	}
 
 	// フォントフェイスを作成
-	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.BebasNeueRegular_ttf))
-	if err != nil {
-		fmt.Printf("Error loading font: %v", err)
-		return
-	}
-
 	face := &text.GoTextFace{
-		Source: s,
+		Source: l.source,
 		Size:   float64(TextSize),
 	}
 
@@ -228,4 +220,27 @@ func (l *List) GetVisibleRange() (start, end int) {
 		end = len(l.Items)
 	}
 	return l.scrollPos, end
+}
+
+func (l *List) GetHoverCursor(screenWidth, mouseX, mouseY int) int {
+	if !l.Visible {
+		return -1
+	}
+
+	itemWidth, itemHeight := l.calcItemWidthHeight(screenWidth, l.x, l.y)
+	startX := l.x
+	endX := l.x + int(itemWidth)
+	for i := l.scrollPos; i < len(l.Items); i++ {
+		offsetY := l.y + (i-l.scrollPos)*(ItemHeight)
+		if mouseX >= startX && mouseX <= endX {
+			if mouseY >= offsetY && mouseY <= offsetY+int(ItemHeight) {
+				fmt.Printf("itemHeight: %f\n", itemHeight)
+				fmt.Printf("offsetY: %d\n", offsetY)
+				fmt.Printf("Item %d hovered at cursor %d (%d, %d)\n", i, i-l.scrollPos, mouseX, mouseY)
+				return i
+			}
+		}
+	}
+
+	return -1
 }

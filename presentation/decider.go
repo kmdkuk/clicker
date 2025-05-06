@@ -1,5 +1,7 @@
 package presentation
 
+import "fmt"
+
 type Decider interface {
 	Decide(page, cursor int) (bool, string)
 }
@@ -28,6 +30,7 @@ func (d *DefaultDecider) Decide(page, cursor int) (bool, string) {
 	// 建物またはアップグレードの処理
 	adjustedCursor := cursor - 1
 
+	fmt.Printf("Page: %d, Cursor: %d\n", page, adjustedCursor)
 	switch page {
 	case 0: // 建物ページ
 		return d.BuildingUseCase.PurchaseBuildingAction(adjustedCursor)

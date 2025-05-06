@@ -1,6 +1,8 @@
 package input
 
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -9,6 +11,9 @@ import (
 type Handler interface {
 	Update()
 	GetPressedKey() KeyType
+	IsClicked() bool
+	GetMouseCursor() (int, int)
+	ResetClickState()
 }
 
 func NewHandler() Handler {
@@ -19,9 +24,13 @@ func NewHandler() Handler {
 
 // DefaultHandler is the default implementation of InputHandler
 type DefaultHandler struct {
-	pressedKey ebiten.Key // Stores the pressed key
-	wheeldx    float64
-	wheeldy    float64
+	pressedKey   ebiten.Key // Stores the pressed key
+	wheeldx      float64
+	wheeldy      float64
+	mouseX       int
+	mouseY       int
+	keepClicking bool
+	isClicked    bool
 }
 
 // Update method to record the pressed key
@@ -33,6 +42,29 @@ func (ih *DefaultHandler) Update() {
 		break // Record only the first pressed key
 	}
 	ih.wheeldx, ih.wheeldy = ebiten.Wheel()
+
+	if !ih.keepClicking && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		ih.keepClicking = true
+		ih.isClicked = true
+		ih.mouseX, ih.mouseY = ebiten.CursorPosition()
+		fmt.Printf("Mouse clicked at (%d, %d)\n", ih.mouseX, ih.mouseY)
+	}
+	if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		ih.keepClicking = false
+	}
+}
+
+func (ih *DefaultHandler) ResetClickState() {
+	ih.isClicked = false
+	ih.mouseX = 0
+	ih.mouseY = 0
+}
+
+func (ih *DefaultHandler) IsClicked() bool {
+	return ih.isClicked
+}
+func (ih *DefaultHandler) GetMouseCursor() (int, int) {
+	return ih.mouseX, ih.mouseY
 }
 
 // GetPressedKey method to classify and retrieve the pressed key

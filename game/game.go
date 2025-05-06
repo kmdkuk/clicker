@@ -54,11 +54,13 @@ func (g *Game) StartAutoSave(ctx context.Context, interval time.Duration) {
 
 func (g *Game) Update() error {
 	g.inputHandler.Update() // Update input handler
+	defer g.inputHandler.ResetClickState()
 
 	g.gameState.UpdateBuildings(time.Now())
 
 	// Update game state
-	g.renderer.HandleInput(g.inputHandler.GetPressedKey())
+	x, y := g.inputHandler.GetMouseCursor()
+	g.renderer.HandleInput(g.inputHandler.GetPressedKey(), g.inputHandler.IsClicked(), x, y)
 
 	g.renderer.Update()
 
@@ -70,7 +72,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return 640, 480 // Set the game screen size
+	return g.config.ScreenWidth, g.config.ScreenHeight
 }
 
 // GetTotalGenerateRate calculates the total money generation rate from all unlocked buildings

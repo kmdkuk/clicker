@@ -42,28 +42,28 @@ var _ = Describe("Popup", func() {
 		})
 
 		It("should close popup when decision key is pressed", func() {
-			popup.HandleInput(input.KeyTypeDecision)
+			popup.HandleInput(input.KeyTypeDecision, false)
 			Expect(popup.Active).To(BeFalse())
 		})
 
 		It("should not close popup when non-decision keys are pressed", func() {
-			popup.HandleInput(input.KeyTypeUp)
+			popup.HandleInput(input.KeyTypeUp, false)
 			Expect(popup.Active).To(BeTrue())
 
-			popup.HandleInput(input.KeyTypeDown)
+			popup.HandleInput(input.KeyTypeDown, false)
 			Expect(popup.Active).To(BeTrue())
 
-			popup.HandleInput(input.KeyTypeLeft)
+			popup.HandleInput(input.KeyTypeLeft, false)
 			Expect(popup.Active).To(BeTrue())
 
-			popup.HandleInput(input.KeyTypeRight)
+			popup.HandleInput(input.KeyTypeRight, false)
 			Expect(popup.Active).To(BeTrue())
 		})
 
 		It("should not process input when popup is inactive", func() {
 			popup.Close()
 			// Don't process key input when popup is inactive
-			popup.HandleInput(input.KeyTypeDecision)
+			popup.HandleInput(input.KeyTypeDecision, false)
 			Expect(popup.Active).To(BeFalse())
 		})
 	})
