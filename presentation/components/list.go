@@ -1,7 +1,6 @@
 package components
 
 import (
-	"fmt"
 	"image/color"
 
 	"github.com/kmdkuk/clicker/application/dto"
@@ -227,16 +226,13 @@ func (l *List) GetHoverCursor(screenWidth, mouseX, mouseY int) int {
 		return -1
 	}
 
-	itemWidth, itemHeight := l.calcItemWidthHeight(screenWidth, l.x, l.y)
+	itemWidth, _ := l.calcItemWidthHeight(screenWidth, l.x, l.y)
 	startX := l.x
 	endX := l.x + int(itemWidth)
-	for i := l.scrollPos; i < len(l.Items); i++ {
+	for i := l.scrollPos; i < l.scrollPos+l.viewportSize && i < len(l.Items); i++ {
 		offsetY := l.y + (i-l.scrollPos)*(ItemHeight)
 		if mouseX >= startX && mouseX <= endX {
 			if mouseY >= offsetY && mouseY <= offsetY+int(ItemHeight) {
-				fmt.Printf("itemHeight: %f\n", itemHeight)
-				fmt.Printf("offsetY: %d\n", offsetY)
-				fmt.Printf("Item %d hovered at cursor %d (%d, %d)\n", i, i-l.scrollPos, mouseX, mouseY)
 				return i
 			}
 		}

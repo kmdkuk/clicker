@@ -60,7 +60,7 @@ func (g *Game) Update() error {
 
 	// Update game state
 	x, y := g.inputHandler.GetMouseCursor()
-	g.renderer.HandleInput(g.inputHandler.GetPressedKey(), g.inputHandler.IsClicked(), x, y)
+	g.renderer.HandleInput(g.inputHandler.GetPressedKey(), g.inputHandler.IsClicked(), g.inputHandler.IsMouseMoved(), x, y)
 
 	g.renderer.Update()
 

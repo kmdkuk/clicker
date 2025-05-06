@@ -2,7 +2,6 @@ package presentation
 
 import (
 	"bytes"
-	"fmt"
 	"image/color"
 
 	"github.com/kmdkuk/clicker/application/dto"
@@ -19,7 +18,7 @@ import (
 type Renderer interface {
 	Update()
 	Draw(screen *ebiten.Image)
-	HandleInput(keyType input.KeyType, isClicked bool, mouseX, mouseY int)
+	HandleInput(keyType input.KeyType, isClicked, isMouseMoved bool, mouseX, mouseY int)
 	ShowPopup(message string)
 	IsPopupActive() bool
 	GetPopupMessage() string
@@ -133,7 +132,7 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 
 }
 
-func (r *DefaultRenderer) HandleInput(keyType input.KeyType, isClicked bool, mouseX, mouseY int) {
+func (r *DefaultRenderer) HandleInput(keyType input.KeyType, isClicked, isMouseMoved bool, mouseX, mouseY int) {
 	// Popup handling takes priority
 	if r.popup.IsActive() {
 		r.popup.HandleInput(keyType, isClicked)
@@ -142,6 +141,12 @@ func (r *DefaultRenderer) HandleInput(keyType input.KeyType, isClicked bool, mou
 
 	// Normal input handling
 	r.navigation.HandleNavigation(keyType)
+	if isMouseMoved {
+		_, cursor := r.detectHoverComponent(mouseX, mouseY)
+		if cursor != -1 {
+			r.navigation.SetCursor(cursor)
+		}
+	}
 
 	// Decision button handling
 	if keyType == input.KeyTypeDecision || isClicked {
@@ -153,7 +158,6 @@ func (r *DefaultRenderer) handleDecision(isClicked bool, mouseX, mouseY int) {
 	if isClicked {
 		// Which component the cursor is hover
 		page, cursor := r.detectHoverComponent(mouseX, mouseY)
-		fmt.Printf("page: %d, cursor: %d\n", page, cursor)
 		if page != -1 {
 			r.navigation.SetPage(page)
 			// when page click, not exec decide

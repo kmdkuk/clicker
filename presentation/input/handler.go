@@ -1,7 +1,7 @@
 package input
 
 import (
-	"fmt"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -12,6 +12,7 @@ type Handler interface {
 	Update()
 	GetPressedKey() KeyType
 	IsClicked() bool
+	IsMouseMoved() bool
 	GetMouseCursor() (int, int)
 	ResetClickState()
 }
@@ -31,6 +32,7 @@ type DefaultHandler struct {
 	mouseY       int
 	keepClicking bool
 	isClicked    bool
+	isMouseMoved bool
 }
 
 // Update method to record the pressed key
@@ -43,11 +45,16 @@ func (ih *DefaultHandler) Update() {
 	}
 	ih.wheeldx, ih.wheeldy = ebiten.Wheel()
 
+	mouseX, mouseY := ebiten.CursorPosition()
+	ih.isMouseMoved = false
+	if math.Abs(float64(mouseX-ih.mouseX)) > 10 || math.Abs(float64(mouseY-ih.mouseY)) > 10 {
+		ih.isMouseMoved = true
+		ih.mouseX = mouseX
+		ih.mouseY = mouseY
+	}
 	if !ih.keepClicking && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		ih.keepClicking = true
 		ih.isClicked = true
-		ih.mouseX, ih.mouseY = ebiten.CursorPosition()
-		fmt.Printf("Mouse clicked at (%d, %d)\n", ih.mouseX, ih.mouseY)
 	}
 	if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		ih.keepClicking = false
@@ -56,12 +63,13 @@ func (ih *DefaultHandler) Update() {
 
 func (ih *DefaultHandler) ResetClickState() {
 	ih.isClicked = false
-	ih.mouseX = 0
-	ih.mouseY = 0
 }
 
 func (ih *DefaultHandler) IsClicked() bool {
 	return ih.isClicked
+}
+func (ih *DefaultHandler) IsMouseMoved() bool {
+	return ih.isMouseMoved
 }
 func (ih *DefaultHandler) GetMouseCursor() (int, int) {
 	return ih.mouseX, ih.mouseY
