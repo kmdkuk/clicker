@@ -34,6 +34,7 @@ type ListItem interface {
 }
 
 type List struct {
+	source       *text.GoTextFaceSource
 	Items        []ListItem
 	Visible      bool
 	x            int
@@ -42,13 +43,14 @@ type List struct {
 	viewportSize int // Number of items visible at once
 }
 
-func NewList(defaultVisible bool, x, y int) *List {
-	return NewListWithViewport(defaultVisible, x, y, ViewportSize)
+func NewList(source *text.GoTextFaceSource, defaultVisible bool, x, y int) *List {
+	return NewListWithViewport(source, defaultVisible, x, y, ViewportSize)
 }
 
 // NewListWithViewport creates a new list with a specified viewport size and font
-func NewListWithViewport(defaultVisible bool, x, y, viewportSize int) *List {
+func NewListWithViewport(source *text.GoTextFaceSource, defaultVisible bool, x, y, viewportSize int) *List {
 	return &List{
+		source:       source,
 		Items:        []ListItem{},
 		Visible:      defaultVisible,
 		x:            x,

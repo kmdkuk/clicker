@@ -1,11 +1,7 @@
 package components
 
 import (
-	"bytes"
-	"fmt"
 	"image/color"
-
-	"github.com/kmdkuk/clicker/assets/fonts"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -13,14 +9,16 @@ import (
 )
 
 type Tab struct {
+	source     *text.GoTextFaceSource
 	titles     []string
 	x          int
 	y          int
 	activePage int
 }
 
-func NewTab(items []string, defaultPage, x, y int) *Tab {
+func NewTab(source *text.GoTextFaceSource, items []string, defaultPage, x, y int) *Tab {
 	return &Tab{
+		source:     source,
 		titles:     items,
 		x:          x,
 		y:          y,
@@ -44,15 +42,8 @@ func (t *Tab) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	// フォントフェイスを作成
-	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.BebasNeueRegular_ttf))
-	if err != nil {
-		fmt.Printf("Error loading font: %v", err)
-		return
-	}
-
 	face := &text.GoTextFace{
-		Source: s,
+		Source: t.source,
 		Size:   float64(TextSize),
 	}
 

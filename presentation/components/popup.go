@@ -1,11 +1,8 @@
 package components
 
 import (
-	"bytes"
-	"fmt"
 	"image/color"
 
-	"github.com/kmdkuk/clicker/assets/fonts"
 	"github.com/kmdkuk/clicker/presentation/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -32,12 +29,14 @@ var (
 )
 
 type Popup struct {
+	source  *text.GoTextFaceSource
 	Message string // 表示メッセージ
 	Active  bool   // アクティブ状態
 }
 
-func NewPopup() *Popup {
+func NewPopup(source *text.GoTextFaceSource) *Popup {
 	return &Popup{
+		source:  source,
 		Message: "",
 		Active:  false,
 	}
@@ -50,15 +49,9 @@ func (p *Popup) Draw(screen *ebiten.Image) {
 
 	screenWidth := screen.Bounds().Dx()
 	screenHeight := screen.Bounds().Dy()
-	// フォントフェイスの作成
-	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.BebasNeueRegular_ttf))
-	if err != nil {
-		fmt.Printf("Error loading font: %v", err)
-		return
-	}
 
 	face := &text.GoTextFace{
-		Source: s,
+		Source: p.source,
 		Size:   float64(PopupTextSize),
 	}
 
