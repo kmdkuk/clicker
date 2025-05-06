@@ -15,10 +15,14 @@ var _ = Describe("Tab Component", func() {
 	var tab *Tab
 	source, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.BebasNeueRegular_ttf))
 	Expect(err).NotTo(HaveOccurred())
+	var (
+		x = 10
+		y = 20
+	)
 
 	BeforeEach(func() {
 		// Initialize a tab with test data before each test
-		tab = NewTab(source, []string{"Buildings", "Upgrades"}, 0, 10, 20)
+		tab = NewTab(source, []string{"Buildings", "Upgrades"}, 0, x, y)
 	})
 
 	Context("initialization", func() {
@@ -85,6 +89,51 @@ var _ = Describe("Tab Component", func() {
 				multiTab.SetActivePage(i)
 				Expect(multiTab.GetActivePage()).To(Equal(i))
 			}
+		})
+	})
+
+	Describe("GetHoverPage", func() {
+		var (
+			tab         *Tab
+			screenWidth = 640
+			x           = 10
+			y           = 20
+		)
+
+		BeforeEach(func() {
+			// Initialize a Tab instance for testing
+			tab = NewTab(nil, []string{"Page 1", "Page 2", "Page 3"}, 0, x, y)
+		})
+
+		It("should return the correct page index when hovering over a tab", func() {
+			tabWidth := (screenWidth - 2*x) / 3    // Assuming 3 tabs
+			mouseX := 0*tabWidth + tabWidth/2 + 10 // Within the x range of the first tab
+			mouseY := y + ItemHeight/2             // Within the y range of the tabs
+
+			page := tab.GetHoverPage(screenWidth, mouseX, mouseY)
+			Expect(page).To(Equal(0)) // First tab
+
+			mouseX = 1*tabWidth + tabWidth/2 + 10 // Within the x range of the second tab
+			page = tab.GetHoverPage(screenWidth, mouseX, mouseY)
+			Expect(page).To(Equal(1)) // Second tab
+
+			mouseX = 2*tabWidth + tabWidth/2 + 10 // Within the x range of the third tab
+			page = tab.GetHoverPage(screenWidth, mouseX, mouseY)
+			Expect(page).To(Equal(2)) // Third tab
+		})
+
+		It("should return -1 when hovering outside the tab bounds", func() {
+			mouseX := 5  // Outside the x range of the tabs
+			mouseY := 25 // Within the y range of the tabs
+
+			page := tab.GetHoverPage(screenWidth, mouseX, mouseY)
+			Expect(page).To(Equal(-1))
+
+			mouseX = 15 // Within the x range of the tabs
+			mouseY = 5  // Outside the y range of the tabs
+
+			page = tab.GetHoverPage(screenWidth, mouseX, mouseY)
+			Expect(page).To(Equal(-1))
 		})
 	})
 })

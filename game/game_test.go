@@ -127,6 +127,9 @@ func (m *mockInputHandler) Update() {
 func (m *mockInputHandler) IsClicked() bool {
 	return false
 }
+func (m *mockInputHandler) IsMouseMoved() bool {
+	return false
+}
 func (m *mockInputHandler) ResetClickState() {
 	// Do nothing in the mock
 }
@@ -182,7 +185,7 @@ func (m *mockRenderer) HandlePopup(keyType input.KeyType) {
 	}
 }
 
-func (m *mockRenderer) HandleInput(keyType input.KeyType, isClicked bool, mouseX, mouseY int) {
+func (m *mockRenderer) HandleInput(keyType input.KeyType, isClicked, isMouseMoved bool, mouseX, mouseY int) {
 	m.lastHandledInput = keyType
 }
 
