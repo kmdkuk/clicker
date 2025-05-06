@@ -45,7 +45,7 @@ func main() {
 		renderer,
 		inputHandler,
 	)
-	ebiten.SetWindowSize(800, 600)
+	ebiten.SetWindowSize(cfg.ScreenWidth, cfg.ScreenHeight)
 	ebiten.SetWindowTitle("Clicker")
 
 	ctx, cancel := context.WithCancel(context.Background())

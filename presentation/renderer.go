@@ -18,7 +18,7 @@ import (
 type Renderer interface {
 	Update()
 	Draw(screen *ebiten.Image)
-	HandleInput(keyType input.KeyType)
+	HandleInput(keyType input.KeyType, isClicked, isMouseMoved bool, mouseX, mouseY int)
 	ShowPopup(message string)
 	IsPopupActive() bool
 	GetPopupMessage() string
@@ -56,7 +56,6 @@ type DefaultRenderer struct {
 	debugMessage      string
 	decider           Decider
 	navigation        *Navigation
-
 	// Components for rendering different parts of the UI
 	display    *components.Display
 	popup      *components.Popup
@@ -86,7 +85,7 @@ func NewRenderer(config *config.Config, playerUseCase PlayerUseCase, manualWorkU
 		popup:             components.NewPopup(source),
 		manualWork:        components.NewList(source, true, 10, 50),
 		tabs:              components.NewTab(source, []string{"Buildings", "Upgrades"}, 0, 10, 90),
-		buildings:         components.NewList(source, false, 10, 130),
+		buildings:         components.NewList(source, true, 10, 130),
 		upgrades:          components.NewList(source, false, 10, 130),
 	}, nil
 }
@@ -133,23 +132,43 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 
 }
 
-func (r *DefaultRenderer) HandleInput(keyType input.KeyType) {
+func (r *DefaultRenderer) HandleInput(keyType input.KeyType, isClicked, isMouseMoved bool, mouseX, mouseY int) {
 	// Popup handling takes priority
 	if r.popup.IsActive() {
-		r.popup.HandleInput(keyType)
+		r.popup.HandleInput(keyType, isClicked)
 		return
 	}
 
 	// Normal input handling
 	r.navigation.HandleNavigation(keyType)
+	if isMouseMoved {
+		_, cursor := r.detectHoverComponent(mouseX, mouseY)
+		if cursor != -1 {
+			r.navigation.SetCursor(cursor)
+		}
+	}
 
 	// Decision button handling
-	if keyType == input.KeyTypeDecision {
-		r.handleDecision()
+	if keyType == input.KeyTypeDecision || isClicked {
+		r.handleDecision(isClicked, mouseX, mouseY)
 	}
 }
 
-func (r *DefaultRenderer) handleDecision() {
+func (r *DefaultRenderer) handleDecision(isClicked bool, mouseX, mouseY int) {
+	if isClicked {
+		// Which component the cursor is hover
+		page, cursor := r.detectHoverComponent(mouseX, mouseY)
+		if page != -1 {
+			r.navigation.SetPage(page)
+			// when page click, not exec decide
+			return
+		}
+		if cursor == -1 {
+			return
+		}
+		r.navigation.SetCursor(cursor)
+
+	}
 	_, message := r.decider.Decide(
 		r.navigation.GetPage(),
 		r.navigation.GetCursor(),
@@ -158,6 +177,32 @@ func (r *DefaultRenderer) handleDecision() {
 	if message != "" {
 		r.ShowPopup(message)
 	}
+}
+
+// return page, cursor
+func (r *DefaultRenderer) detectHoverComponent(mouseX, mouseY int) (int, int) {
+	// if return -1 not hover
+	page := r.tabs.GetHoverPage(r.config.ScreenWidth, mouseX, mouseY)
+	if page != -1 {
+		return page, -1
+	}
+	cursor := r.manualWork.GetHoverCursor(r.config.ScreenWidth, mouseX, mouseY)
+	if cursor != -1 {
+		return -1, cursor
+	}
+	if r.buildings.Visible {
+		cursor = r.buildings.GetHoverCursor(r.config.ScreenWidth, mouseX, mouseY)
+		if cursor != -1 {
+			return -1, cursor + 1 // +1 for manual work
+		}
+	}
+	if r.upgrades.Visible {
+		cursor = r.upgrades.GetHoverCursor(r.config.ScreenWidth, mouseX, mouseY)
+		if cursor != -1 {
+			return -1, cursor + 1 // +1 for manual work
+		}
+	}
+	return -1, -1
 }
 
 // Popup related methods

@@ -55,6 +55,26 @@ func (n *Navigation) GetCursor() int {
 	return n.cursor
 }
 
+func (n *Navigation) SetCursor(cursor int) {
+	if cursor < 0 {
+		n.cursor = 0
+	} else if cursor >= n.getTotalItems() {
+		n.cursor = n.getTotalItems() - 1
+	} else {
+		n.cursor = cursor
+	}
+}
+
 func (n *Navigation) GetPage() int {
 	return n.page
+}
+
+func (n *Navigation) SetPage(page int) {
+	if page < 0 {
+		n.page = 0
+	} else if page >= n.maxPages {
+		n.page = n.maxPages - 1
+	} else {
+		n.page = page
+	}
 }

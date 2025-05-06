@@ -104,8 +104,8 @@ func (p *Popup) drawBackground(screen *ebiten.Image, x, y, width, height float32
 
 }
 
-func (p *Popup) HandleInput(keyType input.KeyType) {
-	if p.IsActive() && keyType == input.KeyTypeDecision {
+func (p *Popup) HandleInput(keyType input.KeyType, isClicked bool) {
+	if p.IsActive() && (keyType == input.KeyTypeDecision || isClicked) {
 		p.Close()
 	}
 }

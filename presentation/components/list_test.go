@@ -314,4 +314,70 @@ var _ = Describe("List", func() {
 			})
 		})
 	})
+
+	Describe("GetHoverCursor", func() {
+		var (
+			list        *List
+			screenWidth = 640
+			x           = 10
+			y           = 20
+		)
+
+		BeforeEach(func() {
+			// Create a test list with viewport size 3
+			list = NewListWithViewport(source, true, x, y, 3)
+
+			// Add test items
+			list.Items = []ListItem{
+				&MockListItem{StringValue: "Item 0"},
+				&MockListItem{StringValue: "Item 1"},
+				&MockListItem{StringValue: "Item 2"},
+				&MockListItem{StringValue: "Item 3"},
+				&MockListItem{StringValue: "Item 4"},
+			}
+
+			mockScreen = ebiten.NewImage(screenWidth, 480)
+		})
+
+		It("should return the correct index when hovering over an item", func() {
+			mouseX := screenWidth / 2  // Within the x range of the list
+			mouseY := y + ItemHeight/2 // Within the y range of the first item
+
+			cursor := list.GetHoverCursor(screenWidth, mouseX, mouseY)
+			Expect(cursor).To(Equal(0)) // First item
+
+			mouseY = y + ItemHeight + ItemHeight/2 // Within the y range of the second item
+			cursor = list.GetHoverCursor(screenWidth, mouseX, mouseY)
+			Expect(cursor).To(Equal(1)) // Second item
+		})
+
+		It("should return -1 when hovering outside the list bounds", func() {
+			mouseX := 5                // Outside the x range of the list
+			mouseY := y + ItemHeight/2 // Within the y range of the first item
+
+			cursor := list.GetHoverCursor(screenWidth, mouseX, mouseY)
+			Expect(cursor).To(Equal(-1))
+
+			mouseY = y + ItemHeight + ItemHeight/2
+
+			cursor = list.GetHoverCursor(screenWidth, mouseX, mouseY)
+			Expect(cursor).To(Equal(-1))
+
+			mouseX = screenWidth / 2  // Within the x range of the list
+			mouseY = y - ItemHeight/2 // Outside the y range of the list
+
+			cursor = list.GetHoverCursor(screenWidth, mouseX, mouseY)
+			Expect(cursor).To(Equal(-1))
+		})
+
+		It("should return -1 when the list is not visible", func() {
+			list.Visible = false
+
+			mouseX := screenWidth / 2
+			mouseY := y + ItemHeight/2
+
+			cursor := list.GetHoverCursor(screenWidth, mouseX, mouseY)
+			Expect(cursor).To(Equal(-1))
+		})
+	})
 })

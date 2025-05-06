@@ -124,6 +124,19 @@ func (m *mockInputHandler) Update() {
 	// Do nothing in the mock
 }
 
+func (m *mockInputHandler) IsClicked() bool {
+	return false
+}
+func (m *mockInputHandler) IsMouseMoved() bool {
+	return false
+}
+func (m *mockInputHandler) ResetClickState() {
+	// Do nothing in the mock
+}
+func (m *mockInputHandler) GetMouseCursor() (int, int) {
+	return 0, 0
+}
+
 func (m *mockInputHandler) GetPressedKey() input.KeyType {
 	return m.pressedKey
 }
@@ -172,7 +185,7 @@ func (m *mockRenderer) HandlePopup(keyType input.KeyType) {
 	}
 }
 
-func (m *mockRenderer) HandleInput(keyType input.KeyType) {
+func (m *mockRenderer) HandleInput(keyType input.KeyType, isClicked, isMouseMoved bool, mouseX, mouseY int) {
 	m.lastHandledInput = keyType
 }
 
@@ -228,8 +241,10 @@ var _ = Describe("Game", func() {
 	BeforeEach(func() {
 		// Setup config
 		testConfig = &config.Config{
-			SaveKey:     "test_save_key",
-			EnableDebug: true,
+			SaveKey:      "test_save_key",
+			EnableDebug:  true,
+			ScreenWidth:  640,
+			ScreenHeight: 480,
 		}
 
 		// Setup mocks
@@ -237,7 +252,7 @@ var _ = Describe("Game", func() {
 		testStorage = &mockStorage{}
 		testHandler = &mockInputHandler{}
 		testRenderer = &mockRenderer{}
-		mockScreen = ebiten.NewImage(640, 480)
+		mockScreen = ebiten.NewImage(testConfig.ScreenWidth, testConfig.ScreenHeight)
 
 		// Create game with dependencies
 		testGame = NewGame(testConfig, testGameState, testStorage, testRenderer, testHandler)
@@ -330,8 +345,8 @@ var _ = Describe("Game", func() {
 	Describe("Layout", func() {
 		It("should return the correct screen dimensions", func() {
 			width, height := testGame.Layout(800, 600)
-			Expect(width).To(Equal(640))
-			Expect(height).To(Equal(480))
+			Expect(width).To(Equal(testConfig.ScreenWidth))
+			Expect(height).To(Equal(testConfig.ScreenHeight))
 		})
 	})
 

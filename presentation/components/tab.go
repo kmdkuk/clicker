@@ -58,7 +58,7 @@ func (t *Tab) Draw(screen *ebiten.Image) {
 		}
 		label := item
 		isSelected := i == t.activePage
-		tabWidth := ((screen.Bounds().Dx() - (10 + ScrollbarWidth + ScrollbarMargin*2)) / len(t.titles)) - ItemVerticalShift*(len(t.titles)-1)
+		tabWidth, tabHeight := t.getTabSize(screen.Bounds().Dx())
 
 		// 背景色を設定（選択中かホバー中かで分ける）
 		var bgColor color.RGBA
@@ -69,7 +69,7 @@ func (t *Tab) Draw(screen *ebiten.Image) {
 		}
 
 		// タブの背景を描画（上部に丸みをつける）
-		t.drawTabBackground(screen, currentX, t.y+ItemVerticalShift, tabWidth, ItemHeight-(ItemVerticalShift*2), bgColor)
+		t.drawTabBackground(screen, currentX, t.y+ItemVerticalShift, tabWidth, tabHeight, bgColor)
 
 		// テキストの色を設定
 		var textColor color.RGBA
@@ -109,4 +109,28 @@ func (t *Tab) drawTabBackground(screen *ebiten.Image, x, y, width, height int, b
 		bgColor,
 		false,
 	)
+}
+
+func (t *Tab) getTabSize(screenWidth int) (int, int) {
+	width := ((screenWidth - (10 + ScrollbarWidth + ScrollbarMargin*2)) / len(t.titles)) - ItemVerticalShift*(len(t.titles)-1)
+	height := ItemHeight - (ItemVerticalShift * 2)
+	return width, height
+}
+
+func (t *Tab) GetHoverPage(screenWidth, mouseX, mouseY int) int {
+	// タブの幅を計算
+	tabWidth, tabHeight := t.getTabSize(screenWidth)
+
+	// 各タブをチェック
+	xOffset := 10
+	for i := 0; i < len(t.titles); i++ {
+		if mouseX >= xOffset && // left side
+			mouseX < xOffset+tabWidth && // right side
+			mouseY >= t.y+ItemVerticalShift && // top side
+			mouseY < t.y+tabHeight-ItemVerticalShift { // bottom side
+			return i
+		}
+		xOffset += (tabWidth + 2*ItemVerticalShift)
+	}
+	return -1
 }
