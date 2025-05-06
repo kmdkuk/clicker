@@ -231,7 +231,7 @@ func (l *List) GetHoverCursor(screenWidth, mouseX, mouseY int) int {
 	endX := l.x + int(itemWidth)
 	for i := l.scrollPos; i < l.scrollPos+l.viewportSize && i < len(l.Items); i++ {
 		offsetY := l.y + (i-l.scrollPos)*(ItemHeight)
-		if mouseX >= startX && mouseX <= endX {
+		if mouseX >= startX && mouseX < endX {
 			if mouseY >= offsetY && mouseY <= offsetY+int(ItemHeight) {
 				return i
 			}
