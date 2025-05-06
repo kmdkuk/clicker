@@ -108,12 +108,6 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 	// Draw game information
 	r.display.DrawMoney(screen, r.playerUseCase.GetPlayer())
 
-	// If popup is active, only draw it and return
-	if r.popup.IsActive() {
-		r.popup.Draw(screen)
-		return
-	}
-
 	r.manualWork.Draw(screen, r.navigation.GetCursor())
 
 	// Draw tabs
@@ -124,6 +118,11 @@ func (r *DefaultRenderer) Draw(screen *ebiten.Image) {
 	r.upgrades.Visible = r.navigation.GetPage() == 1
 	r.buildings.Draw(screen, r.navigation.GetCursor()-1)
 	r.upgrades.Draw(screen, r.navigation.GetCursor()-1)
+
+	// If popup is active, only draw it and return
+	if r.popup.IsActive() {
+		r.popup.Draw(screen)
+	}
 
 }
 
