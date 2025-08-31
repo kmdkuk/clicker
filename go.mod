@@ -6,7 +6,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.8.8
 	github.com/onsi/ginkgo/v2 v2.25.2
 	github.com/onsi/gomega v1.38.2
-	github.com/spf13/pflag v1.0.7
+	github.com/spf13/pflag v1.0.8
 	golang.org/x/net v0.43.0
 )
 
