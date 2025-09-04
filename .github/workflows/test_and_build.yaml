@@ -19,7 +19,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v5
       - name: setup go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - name: build
@@ -31,7 +31,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v5
       - name: setup go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - name: Ensure go.mod is already tidied
@@ -45,7 +45,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v5
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - name: Run GoReleaser
