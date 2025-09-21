@@ -24,7 +24,7 @@ test: fmt vet staticcheck ginkgo lint## Run tests.
 	go tool cover -html=coverage.out -o coverage.html
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.4.0 # renovate: golangci/golangci-lint
+GOLANGCI_LINT_VERSION ?= v2.5.0 # renovate: golangci/golangci-lint
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
 	set -e ;\
