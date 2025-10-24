@@ -15,7 +15,7 @@ jobs:
         with:
           go-version-file: go.mod
       - run: make build-wasm
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: pages
           path: pages
@@ -29,7 +29,7 @@ jobs:
         with:
           ref: gh-pages
       - run: rm -rf *
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: pages
       - run: ls -R
