@@ -3,7 +3,7 @@ module github.com/kmdkuk/clicker
 go 1.24.2
 
 require (
-	github.com/hajimehoshi/ebiten/v2 v2.9.5
+	github.com/hajimehoshi/ebiten/v2 v2.9.7
 	github.com/onsi/ginkgo/v2 v2.27.3
 	github.com/onsi/gomega v1.38.3
 	github.com/spf13/pflag v1.0.10
