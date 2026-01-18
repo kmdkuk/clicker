@@ -93,11 +93,11 @@ func (p *Popup) Draw(screen *ebiten.Image) {
 // 吹き出し背景の描画
 func (p *Popup) drawBackground(screen *ebiten.Image, x, y, width, height float32) {
 	// メイン背景の描画
-	vector.DrawFilledRect(screen,
+	vector.FillRect(screen,
 		float32(x), float32(y),
 		float32(width), float32(height),
 		PopupBorderColor, false)
-	vector.DrawFilledRect(screen,
+	vector.FillRect(screen,
 		float32(x+1), float32(y+1),
 		float32(width-2), float32(height-2),
 		PopupBgColor, false)

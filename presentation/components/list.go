@@ -116,7 +116,7 @@ func (l *List) drawItem(screen *ebiten.Image, item ListItem, x, y int, isSelecte
 
 	// 背景矩形を描画
 	rectWidth, rectHeight := l.calcItemWidthHeight(screen.Bounds().Dx(), x, y)
-	vector.DrawFilledRect(screen, float32(x), float32(y), rectWidth, rectHeight, bgColor, false)
+	vector.FillRect(screen, float32(x), float32(y), rectWidth, rectHeight, bgColor, false)
 
 	// テキストの色を設定（選択中かどうかで分ける）
 	var textColor color.RGBA
@@ -171,7 +171,7 @@ func (l *List) drawScrollBar(screen *ebiten.Image, endIdx int) {
 	listHeight := float64(visibleCount * ItemHeight)
 
 	// Draw scrollbar background (track)
-	vector.DrawFilledRect(screen, float32(scrollbarX), float32(scrollbarY),
+	vector.FillRect(screen, float32(scrollbarX), float32(scrollbarY),
 		float32(ScrollbarWidth), float32(listHeight), ScrollbarTrackColor, false)
 
 	// Calculate handle size and position
@@ -190,7 +190,7 @@ func (l *List) drawScrollBar(screen *ebiten.Image, endIdx int) {
 	handleY := scrollbarY + scrollRatio*(listHeight-handleHeight)
 
 	// Draw scrollbar handle
-	vector.DrawFilledRect(screen, float32(scrollbarX), float32(handleY),
+	vector.FillRect(screen, float32(scrollbarX), float32(handleY),
 		float32(ScrollbarWidth), float32(handleHeight), ScrollbarHandleColor, false)
 }
 

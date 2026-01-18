@@ -41,7 +41,7 @@ func (d *Display) DrawMoney(screen *ebiten.Image, playerDTO *dto.Player) {
 
 	// 背景矩形を描画
 	rectWidth, rectHeight := d.calcItemWidthHeight(screen.Bounds().Dx())
-	vector.DrawFilledRect(screen, float32(d.x), float32(d.y), rectWidth, rectHeight, bgColor, false)
+	vector.FillRect(screen, float32(d.x), float32(d.y), rectWidth, rectHeight, bgColor, false)
 
 	// テキストの色を設定（選択中かどうかで分ける）
 	textColor := NormalTextColor

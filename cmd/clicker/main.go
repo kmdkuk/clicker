@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	flag "github.com/spf13/pflag"
 
 	"github.com/kmdkuk/clicker/application/usecase"
 	"github.com/kmdkuk/clicker/config"
@@ -12,10 +16,6 @@ import (
 	"github.com/kmdkuk/clicker/infrastructure/storage/driver"
 	"github.com/kmdkuk/clicker/presentation"
 	"github.com/kmdkuk/clicker/presentation/input"
-
-	"github.com/hajimehoshi/ebiten/v2"
-	flag "github.com/spf13/pflag"
-	"golang.org/x/net/context"
 )
 
 func main() {
