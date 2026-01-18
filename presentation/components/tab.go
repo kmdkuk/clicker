@@ -100,7 +100,7 @@ func (t *Tab) Draw(screen *ebiten.Image) {
 // drawTabBackground はタブの背景を描画します（上側の角のみ丸くする）
 func (t *Tab) drawTabBackground(screen *ebiten.Image, x, y, width, height int, bgColor color.RGBA) {
 	// 標準の矩形描画
-	vector.DrawFilledRect(
+	vector.FillRect(
 		screen,
 		float32(x),
 		float32(y),
