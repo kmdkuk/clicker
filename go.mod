@@ -5,7 +5,7 @@ go 1.25.6
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.9.9
 	github.com/onsi/ginkgo/v2 v2.28.2
-	github.com/onsi/gomega v1.39.1
+	github.com/onsi/gomega v1.40.0
 	github.com/spf13/pflag v1.0.10
 )
 
